@@ -201,7 +201,7 @@ def userDelete(request, name_parts, pk):
         model = User.objects.get(id=pk)
         # userDelete_pk = '{}'.format(pk)
         # insert_quesy_to_table = '''
-        # delete from user where user_pk='{}';''' \
+        # delete from users where user_id='{}';''' \
         #     .format(userDelete_pk)
         # cursor.execute(insert_quesy_to_table)
         # conn.commit()
@@ -331,7 +331,7 @@ def userEdit(request, name_parts, pk):
             user.user_role = request.POST.get("user_role")
             userEdit_user_role = '{}'.format(request.POST.get("user_role"))
             # insert_quesy_to_table = '''
-            # update user set full_name='{}', phone_number='{}', email='{}', user_role='{}' where user_pk='{}';'''\
+            # update users set full_name='{}', phone_number='{}', user_email='{}', user_role='{}' where user_id='{}';'''\
             #     .format(userEdit_full_name, userEditPhone_number,userEditEmail,userEdit_user_role, userEdit_pk)
             # cursor.execute(insert_quesy_to_table)
             # conn.commit()
@@ -575,9 +575,9 @@ def DoneCreate(request, name_parts):
         data_reg = '{}'.format(datetime.datetime.now())
         last_pk = User.objects.all().last().pk + 1
         # insert_quesy_to_table = '''
-        # insert into user (data_reg, first_name, last_name, full_name, phone_number, email, is_confirm,
-        #                  user_role, is_live, user_pk)
-        # values ('{}', '', '', '{}', '{}', '{}', 0, '{}', 0, '{}');'''.format(data_reg, user_full_name, user_phone_number, user_email, user_user_role, last_pk)
+        # insert into users (date_reg, first_name, last_name, full_name, phone_number, user_email, is_confirm,
+        #                  user_role, is_live)
+        # values ('{}', '', '', '{}', '{}', '{}', 0, '{}', 0);'''.format(data_reg, user_full_name, user_phone_number, user_email, user_user_role)
         # cursor.execute(insert_quesy_to_table)
         # conn.commit()
         user.save()
