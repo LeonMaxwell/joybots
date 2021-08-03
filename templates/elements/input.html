@@ -1,0 +1,165 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block table %}
+    <div class="work_models">
+            <a type="button" href="{% url 'parts_add' name_parts=type %}" class="btn btn-success">+ Добавить новое поле</a>
+            <a type="button" href="{% url 'export_to_excel' %}" id="export" class="btn btn-outline-success">Экспорт в Excel</a>
+    </div>
+                <thead class="thead-inverse">
+                    {% if type == "users" %}
+                        <th>ID</th>
+                        <th>Полное имя</th>
+                        <th>Электронная почта</th>
+                        <th>Номер телефона</th>
+                        <th>Роль пользователя</th>
+                    {% elif type == "modules" %}
+                        <th>ID</th>
+                        <th>Имя модуля</th>
+                        <th>Описание модуля</th>
+                        <th>Фото модуля</th>
+                    {% elif type == "lessons" %}
+                        <th>ID</th>
+                        <th>Имя урока</th>
+                        <th>Описание урока</th>
+                        <th>Тип урока</th>
+                    {% elif type == "msglessons" %}
+                        <th>ID</th>
+                        <th>Имя урока</th>
+                        <th>Тип контента</th>
+                        <th>Подпись контента</th>
+                        <th>Контент урока</th>
+                    {% elif type == "quests" %}
+                        <th>ID</th>
+                        <th>Название урока</th>
+                        <th>Название модуля</th>
+                        <th>Название квеста</th>
+                        <th>Описание квеста</th>
+                    {% elif type == "msgquests" %}
+                        <th>ID</th>
+                        <th>Название квеста</th>
+                        <th>Тип контента</th>
+                        <th>Контент квеста</th>
+                        <th>Подпись контента</th>
+                    {% elif type == "choicequests" %}
+                        <th>ID</th>
+                        <th>Название квеста</th>
+                        <th>Название выбора для квеста</th>
+                        <th>Верность выбора</th>
+                        <th>Описание выбора</th>
+                    {% endif %}
+                </thead>
+            {% for foo in date %}
+                {% if type == "users" %}
+                {% if foo.is_superuser %}
+                {% else %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.full_name }}</td>
+                    <td>{{ foo.email }}</td>
+                    <td>{{ foo.phone_number }}</td>
+                    <td>{{ foo.user_role }}</td>
+                    <td>
+                        <a type="button" href="{% url 'userEdit' name_parts=type pk=foo.pk  %}"  id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'deleteUser' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% endif %}
+                {% elif type == "modules" %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.module_name }}</td>
+                    <td>{{ foo.module_description }}</td>
+                    <td><a href="{{ foo.module_photo.url }}">{{ foo.module_photo }}</a></td>
+                    <td>
+                        <a type="button" href="{% url 'moduleEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'moduleDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% elif type == "lessons" %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.lessons_name }}</td>
+                    <td>{{ foo.lessons_description }}</td>
+                    {% if foo.is_parent == 1 %}
+                        <td>Родитель</td>
+                    {% elif foo.is_parent == 0 %}
+                        <td>Ребенок</td>
+                    {% endif %}
+                    <td>
+                        <a type="button" href="{% url 'lessonsEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'lessonsDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% elif type == "msglessons" %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.id_lessons.lessons_name }}</td>
+                    <td>{{ foo.id_AllMessages.message_type }}</td>
+                    <td>{{ foo.id_AllMessages.message_caption }}</td>
+                    {% if foo.id_AllMessages.message_type == "text" %}
+                        <td>{{ foo.id_AllMessages.message_value }}</td>
+                    {% else %}
+                        <td><a href="{{ foo.id_AllMessages.message_photos.url }}">{{ foo.id_AllMessages.message_photos.url }}</a></td>
+                    {% endif %}
+                    <td>
+                        <a type="button" href="{% url 'lessonsmsgEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'lessonsmsgDelete' name_parts=type pk=foo.pk %}"  id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% elif type == "quests" %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.id_lessons.lessons_name }}</td>
+                    <td>{{ foo.id_lessons.id_modules.module_name }}</td>
+                    <td>{{ foo.quest_name }}</td>
+                    <td>{{ foo.quest_description }}</td>
+                    <td>
+                        <a type="button" href="{% url 'questEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'questsDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% elif type == "msgquests" %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.quest_id.quest_name }}</td>
+                    <td>{{ foo.id_AllMessages.message_type }}</td>
+                    {% if foo.id_AllMessages.message_type == "text" %}
+                        <td>{{ foo.id_AllMessages.message_value }}</td>
+                    {% else %}
+                        <td><a href="{{ foo.id_AllMessages.message_photos.url }}">{{ foo.id_AllMessages.message_photos.url }}</a></td>
+                    {% endif %}
+                    <td>{{ foo.id_AllMessages.message_caption }}</td>
+                    <td>
+                        <a type="button" href="{% url 'questmsgEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'questsmsgDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% elif type == "choicequests" %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.quest_id.quest_name }}</td>
+                    <td>{{ foo.choice_name }}</td>
+                    <td>{{ foo.is_True }}</td>
+                    <td>{{ foo.сhoice_description }}</td>
+                    <td>
+                        <a type="button" href="{% url 'choicequestEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'questschoiceDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% endif %}
+        {% endfor %}
+{% endblock table %}
+<script>
+{% block scripts %}
+        $(document).on('click touchstart', '#edit', function(){
+            $.ajax({
+                url: "{% url 'parts_add' name_parts=type %}",
+                data: "{'csrfmiddlewaretoken': '{{ csrf_token }}",
+                success: function () {
+                    window.location = ''
+                }
+            })
+        })
+{% endblock scripts %}
+</script>

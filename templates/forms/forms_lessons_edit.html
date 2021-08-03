@@ -1,0 +1,7 @@
+    <form method="post"  enctype="multipart/form-data" action="{% url 'lessonsEdit' pk=pk name_parts="lessons" %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <label>
+            <input type="submit" value="Добавить сервис">
+        </label>
+    </form>

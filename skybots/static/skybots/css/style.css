@@ -1,0 +1,36 @@
+h1 {
+    margin-bottom: -10px;
+}
+
+hr:not([size]) {
+    height: 4px;
+}
+
+#login{
+    margin-top: 0.5%;
+    padding: 0.5% 2%;
+    margin-left: 51%;
+    margin-bottom: -0.5%;
+}
+
+#is_login{
+    margin-left: 80%;
+    margin-top: 1%;
+    margin-bottom: -0.5%;
+    top: 3%;
+}
+
+#logout{
+    margin-left: 1%;
+    margin-top: 0.5%;
+    padding: 0.5% 2%;
+    margin-bottom: -0.5%;
+}
+
+#remove, #edit{
+    margin-top: -3%;
+}
+
+.work_models{
+    margin-left: 71%;
+}
