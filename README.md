@@ -6,8 +6,9 @@
   ![Django](https://img.shields.io/badge/Framework-Django-brightgreen)
   ![Bootstrap](https://img.shields.io/badge/Client%20framework-Bootstrap-blueviolet) 
   ![MySQL](https://img.shields.io/badge/Database-MySQL-yellow) 
-
-
+  ![HTML](https://img.shields.io/badge/Markup-HTML-important)
+  ![CSS](https://img.shields.io/badge/Stylesheets-CSS-9cf)
+  
 <h2 align="center">Разворачивание проекта</h2>
 
 <p>Когда проект будет загружен на сервер требуется перейти в корневую папку проекта и выполнить следующие команды: </p>
