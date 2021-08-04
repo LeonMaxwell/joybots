@@ -14,8 +14,12 @@
                         <th>Номер телефона</th>
                         <th>Роль пользователя</th>
                         <th>Дата подписки</th>
+                    {% elif type == "themes" %}
+                        <th>ID</th>
+                        <th>Имя темы</th>
                     {% elif type == "modules" %}
                         <th>ID</th>
+                        <th>ID темы</th>
                         <th>Имя модуля</th>
                         <th>Описание модуля</th>
                         <th>Фото модуля</th>
@@ -68,9 +72,19 @@
                     </td>
                 </tr>
                 {% endif %}
+                {% elif type == "themes" %}
+                 <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.themes_names }}</td>
+                    <td>
+                        <a type="button" href="{% url 'themesEdits' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'deleteThemes' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
                 {% elif type == "modules" %}
                 <tr>
                     <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.themes_id }}</td>
                     <td>{{ foo.module_name }}</td>
                     <td>{{ foo.module_description|truncatechars:40   }}</td>
                     {% if foo.module_photo == "Файл не найден" %}

@@ -25,10 +25,19 @@ class CreateUserForms(forms.ModelForm):
     subscribe = forms.DateTimeField(widget=forms.DateInput(attrs={'type': 'date'}))
 
 
+class CreateThemesForms(forms.ModelForm):
+    class Meta:
+        model = Themes
+        fields = ('themes_names', )
+
+
 class CreateModuleForms(forms.ModelForm):
     class Meta:
         model = Modules
-        fields = ('module_name', 'module_description', 'module_photo')
+        fields = ('themes_id', 'module_name', 'module_description', 'module_photo')
+
+    themes_id = forms.ModelChoiceField(queryset=Themes.objects.all())
+
 
 class CreateLessonsForms(forms.ModelForm):
     class Meta:

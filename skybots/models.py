@@ -37,7 +37,19 @@ class AllMessage(models.Model):
         return "Сообщение № {}".format(self.pk)
 
 
+class Themes(models.Model):
+    themes_names = models.CharField(max_length=256, verbose_name="Имя темы", unique=True)
+
+    class Meta:
+        verbose_name = "Тема"
+        verbose_name_plural = "База тем"
+
+    def __str__(self):
+        return self.themes_names
+
+
 class Modules(models.Model):
+    themes_id = models.ForeignKey(Themes, on_delete=models.CASCADE, default=True, null=True, verbose_name="ID темы")
     module_name = models.CharField(max_length=256, verbose_name="Имя модуля", unique=True)
     module_description = models.TextField(blank=True, null=True, verbose_name="Описание модуля")
     module_photo = models.ImageField(upload_to=get_upload_path, default=True, verbose_name="Фото модуля")

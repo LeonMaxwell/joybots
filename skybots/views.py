@@ -5,44 +5,39 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.views import LogoutView
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.template import RequestContext
 from django.urls import reverse_lazy
-from django.utils.datastructures import MultiValueDictKeyError
-from django.utils.decorators import method_decorator
-from django.views import View
-from django.views.decorators.csrf import csrf_protect
-from pip._internal.operations.install.wheel import req_error_context
+from django.views.generic import FormView, CreateView
+
 from .forms import *
 from .forms import LoginUserForms
-from .models import User
-# Create your views here.
 from .models import *
-from django.views.generic import TemplateView, FormView, CreateView
-# from skybotsPanel.settings import connection
-# import mysql.connector
-# from mysql.connector import Error
-# from skybotsPanel.settings import db_confg
 
 
-# def create_connection_mysql_db(db_host, db_name, user_name, user_password):
-#     connection_db = None
-#     try:
-#         connection_db = mysql.connector.connect(
-#             host=db_host,
-#             user=user_name,
-#             password=user_password,
-#             database=db_name,
-#         )
-#         print("Пдключение к MySQL успешно выполнено")
-#     except Error as db_connection_error:
-#         print("Возникла ошибка: ", db_connection_error)
-#     return connection_db
+#from skybotsPanel.settings import connection
+#import mysql.connector
+#from mysql.connector import Error
+#from skybotsPanel.settings import db_confg
 
 
-# conn = create_connection_mysql_db(db_confg["mysql"]["host"],
-#                                   db_confg["mysql"]["db_name"],
-#                                   db_confg["mysql"]["user"],
-#                                   db_confg["mysql"]["pass"])
+#def create_connection_mysql_db(db_host, db_name, user_name, user_password):
+#    connection_db = None
+#    try:
+#        connection_db = mysql.connector.connect(
+#            host=db_host,
+#            user=user_name,
+#            password=user_password,
+#            database=db_name,
+#        )
+#        print("Пдключение к MySQL успешно выполнено")
+#    except Error as db_connection_error:
+#        print("Возникла ошибка: ", db_connection_error)
+#    return connection_db
+
+
+#conn = create_connection_mysql_db(db_confg["mysql"]["host"],
+#                                  db_confg["mysql"]["db_name"],
+#                                  db_confg["mysql"]["user"],
+#                                  db_confg["mysql"]["pass"])
 
 
 class LoginUser(FormView):
@@ -93,6 +88,8 @@ class PartsView(CreateView):
         type_cont = kwargs['name_parts']
         if type_cont == 'users':
             data_for_table = User.objects.all()
+        elif type_cont == 'themes':
+            data_for_table = Themes.objects.all()
         elif type_cont == 'modules':
             data_for_table = Modules.objects.all()
         elif type_cont == 'lessons':
@@ -127,6 +124,10 @@ class CreateModels(CreateView):
             self.form_class = CreateUserForms
             self.model = User
             self.template_name = 'forms/forms_user.html'
+        elif type_cont == 'themes':
+            self.form_class = CreateThemesForms
+            self.model = Themes
+            self.template_name = 'forms/forms_themes.html'
         elif type_cont == 'modules':
             self.form_class = CreateModuleForms
             self.model = Modules
@@ -169,6 +170,10 @@ class EditModels(CreateView):
             self.form_class = CreateUserForms(instance=self.model.objects.get(id=pk_cont))
             self.model = User
             self.template_name = 'forms/forms_user_edit.html'
+        elif type_cont == "themes":
+            self.model = Themes
+            self.form_class = CreateThemesForms(instance=self.model.objects.get(id=pk_cont))
+            self.template_name = 'forms/forms_themes_edit.html'
         elif type_cont == 'modules':
             self.model = Modules
             self.form_class = CreateModuleForms(instance=self.model.objects.get(id=pk_cont))
@@ -198,16 +203,26 @@ class EditModels(CreateView):
 
 
 def userDelete(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         model = User.objects.get(id=pk)
-        # userDelete_pk = '{}'.format(pk)
-        # insert_quesy_to_table = '''
-        # delete from users where user_id='{}';''' \
-        #     .format(userDelete_pk)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #userDelete_pk = '{}'.format(pk)
+        #insert_quesy_to_table = '''
+        #delete from users where user_id='{}';''' \
+        #    .format(userDelete_pk)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
+        model.delete()
+        return render(request, 'index.html', {"it_user": user_is})
+    except User.DoesNotExist:
+        return render(request, 'index.html', {"it_user": user_is})
+
+
+def themesDelete(request, name_parts, pk):
+    user_is = request.user
+    try:
+        model = Themes.objects.get(id=pk)
         model.delete()
         return render(request, 'index.html', {"it_user": user_is})
     except User.DoesNotExist:
@@ -216,15 +231,15 @@ def userDelete(request, name_parts, pk):
 
 def moduleDelete(request, name_parts, pk):
     user_is = request.user
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     try:
         model = Modules.objects.get(id=pk)
-        # userDelete_pk = '{}'.format(pk)
-        # insert_quesy_to_table = '''
-        # delete from modules where module_id='{}';''' \
-        #     .format(userDelete_pk)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #userDelete_pk = '{}'.format(pk)
+        #insert_quesy_to_table = '''
+        #delete from modules where module_id='{}';''' \
+        #    .format(userDelete_pk)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         model.delete()
         return render(request, 'index.html', {"it_user": user_is})
     except User.DoesNotExist:
@@ -232,16 +247,16 @@ def moduleDelete(request, name_parts, pk):
 
 
 def lessonsDelete(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         model = Lessons.objects.get(id=pk)
-        # userDelete_pk = '{}'.format(pk)
-        # insert_quesy_to_table = '''
-        # delete from lessons where lesson_id='{}';''' \
-        #     .format(userDelete_pk)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #userDelete_pk = '{}'.format(pk)
+        #insert_quesy_to_table = '''
+        #delete from lessons where lesson_id='{}';''' \
+        #    .format(userDelete_pk)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         model.delete()
         return render(request, 'index.html', {"it_user": user_is})
     except User.DoesNotExist:
@@ -249,16 +264,16 @@ def lessonsDelete(request, name_parts, pk):
 
 
 def lessonsmsgDelete(request, name_parts, pk):
-  #  cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         model = LessonsMessage.objects.get(id=pk)
-        # userDelete_pk = '{}'.format(pk)
-        # insert_quesy_to_table = '''
-        # delete from lessons_messages where id='{}';''' \
-        #     .format(userDelete_pk)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #userDelete_pk = '{}'.format(pk)
+        #insert_quesy_to_table = '''
+        #delete from lessons_messages where id='{}';''' \
+        #    .format(userDelete_pk)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         model.delete()
         return render(request, 'index.html', {"it_user": user_is})
     except User.DoesNotExist:
@@ -266,16 +281,16 @@ def lessonsmsgDelete(request, name_parts, pk):
 
 
 def questsDelete(request, name_parts, pk):
- #   cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         model = Quest.objects.get(id=pk)
-        # userDelete_pk = '{}'.format(pk)
-        # insert_quesy_to_table = '''
-        # delete from quests where quest_id='{}';''' \
-        #     .format(userDelete_pk)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #userDelete_pk = '{}'.format(pk)
+        #insert_quesy_to_table = '''
+        #delete from quests where quest_id='{}';''' \
+        #    .format(userDelete_pk)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         model.delete()
         return render(request, 'index.html', {"it_user": user_is})
     except User.DoesNotExist:
@@ -287,12 +302,12 @@ def questsmsgDelete(request, name_parts, pk):
     user_is = request.user
     try:
         model = QuestMessage.objects.get(id=pk)
-        # userDelete_pk = '{}'.format(pk)
-        # insert_quesy_to_table = '''
-        # delete from quests_messages where id='{}';''' \
-        #     .format(userDelete_pk)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #userDelete_pk = '{}'.format(pk)
+        #insert_quesy_to_table = '''
+        #delete from quests_messages where id='{}';''' \
+        #    .format(userDelete_pk)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         model.delete()
         return render(request, 'index.html', {"it_user": user_is})
     except User.DoesNotExist:
@@ -300,16 +315,16 @@ def questsmsgDelete(request, name_parts, pk):
 
 
 def questschoiceDelete(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         model = QuestChoices.objects.get(id=pk)
-        # userDelete_pk = '{}'.format(pk)
-        # insert_quesy_to_table = '''
-        # delete from quests_choices where choice_id='{}';''' \
-        #     .format(userDelete_pk)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #userDelete_pk = '{}'.format(pk)
+        #insert_quesy_to_table = '''
+        #delete from quests_choices where choice_id='{}';''' \
+        #    .format(userDelete_pk)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         model.delete()
         return render(request, 'index.html', {"it_user": user_is})
     except User.DoesNotExist:
@@ -317,7 +332,7 @@ def questschoiceDelete(request, name_parts, pk):
 
 
 def userEdit(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     old_data = User.objects.get(id=pk)
     user = User.objects.get(id=pk)
@@ -333,11 +348,11 @@ def userEdit(request, name_parts, pk):
             userEditPhone_number = '{}'.format(request.POST.get("phone_number"))
             user.user_role = request.POST.get("user_role")
             userEdit_user_role = '{}'.format(request.POST.get("user_role"))
-            # insert_quesy_to_table = '''
-            # update users set full_name='{}', phone_number='{}', user_email='{}', user_role='{}' where user_id='{}';'''\
-            #     .format(userEdit_full_name, userEditPhone_number,userEditEmail,userEdit_user_role, userEdit_pk)
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
+            #insert_quesy_to_table = '''
+            #update users set full_name='{}', phone_number='{}', user_email='{}', user_role='{}' where user_id='{}';'''\
+            #    .format(userEdit_full_name, userEditPhone_number,userEditEmail,userEdit_user_role, userEdit_pk)
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
             user.save()
             return render(request, 'index.html', {"it_user": user_is})
         else:
@@ -347,8 +362,27 @@ def userEdit(request, name_parts, pk):
         return render(request, 'index.html', {"it_user": user_is})
 
 
+def themesEdit(request, name_parts, pk):
+    #cursor = conn.cursor()
+    user_is = request.user
+    try:
+        module = Themes.objects.get(id=pk)
+        form = CreateThemesForms(instance=module)
+
+        if request.method == "POST":
+            userEdit_pk= '{}'.format(pk)
+            module.themes_names = request.POST.get("themes_names")
+            module.save()
+            return render(request, 'index.html', {"it_user": user_is})
+        else:
+            return render(request, 'forms/forms_themes_edit.html',
+                  {"pk": pk, "object": module, 'form': form, "it_user": user_is})
+    except Themes.DoesNotExist:
+        return render(request, 'index.html', {"it_user": user_is})
+
+
 def moduleEdit(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         module = Modules.objects.get(id=pk)
@@ -356,6 +390,8 @@ def moduleEdit(request, name_parts, pk):
 
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
+            module.themes_id_id = request.POST.get('themes_id')
+            module_themes_id_id = '{}'.format(request.POST.get('themes_id'))
             module.module_name = request.POST.get("module_name")
             moduleEdit_module_name = '{}'.format(request.POST.get("module_name"))
             module.module_description = request.POST.get("module_description")
@@ -371,11 +407,11 @@ def moduleEdit(request, name_parts, pk):
                 else:
                     module.module_photo = "Изображение не найдено."
                     moduleEdit_module_photo = 'Изображение не найдено.'
-            # insert_quesy_to_table = '''
-            # update modules set module_name='{}', module_description='{}', module_photo='{}' where module_pk='{}'; '''\
-            #     .format(moduleEdit_module_name, moduleEit_module_description, moduleEdit_module_photo, userEdit_pk)
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
+            #insert_quesy_to_table = '''
+            #update modules set module_name='{}', module_description='{}', module_photo='{}' where module_pk='{}'; '''\
+            #    .format(moduleEdit_module_name, moduleEit_module_description, moduleEdit_module_photo, userEdit_pk)
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
             module.save()
             return render(request, 'index.html', {"it_user": user_is})
         else:
@@ -386,7 +422,7 @@ def moduleEdit(request, name_parts, pk):
 
 
 def lessonsEdit(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         module = Lessons.objects.get(id=pk)
@@ -401,12 +437,12 @@ def lessonsEdit(request, name_parts, pk):
             moduleEdit_lessons_description = '{}'.format(request.POST.get("lessons_description"))
             module.is_parent = request.POST.get("is_parent")
             moduleEdit_is_parent = '{}'.format(request.POST.get("is_parent"))
-            # insert_quesy_to_table = '''
-            # update lessons set module_id='{}', lesson_name='{}', lesson_description='{}', is_parent='{}' where lesson_id='{}';'''\
-            #     .format(module_id_modules_id, moduleEdit_lessons_name, moduleEdit_lessons_description,
-            #                                            moduleEdit_is_parent,userEdit_pk )
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
+            #insert_quesy_to_table = '''
+            #update lessons set module_id='{}', lesson_name='{}', lesson_description='{}', is_parent='{}' where lesson_id='{}';'''\
+            #    .format(module_id_modules_id, moduleEdit_lessons_name, moduleEdit_lessons_description,
+            #                                           moduleEdit_is_parent,userEdit_pk )
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
             module.save()
             return render(request, 'index.html', {"it_user": user_is})
         else:
@@ -417,7 +453,7 @@ def lessonsEdit(request, name_parts, pk):
 
 
 def lessonsmsgEdit(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         module = LessonsMessage.objects.get(id=pk)
@@ -445,17 +481,17 @@ def lessonsmsgEdit(request, name_parts, pk):
                 moduleEdit_message_value = '{}'.format(request.POST.get("message_value"))
             else:
                 moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
-            # moduleEdit_id_AllMessages_id = '{}'.format(allMessages.id)
-            # insert_quesy_to_table = '''
-            # update all_messages set message_type='{}', message_caption='{}', message_value='{}' where message_id='{}';
-            # '''.format(moduleEdit_type_value, moduleEdit_message_caption, moduleEdit_message_value, moduleEdit_id_AllMessages_id)
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
-            # insert_quesy_to_table = '''
-            # update lessons_messages set lesson_id='{}', message_id='{}' where id='{}';
-            #  '''.format(moduleEdit_id_lessons_id, moduleEdit_id_AllMessages_id, userEdit_pk)
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
+            #moduleEdit_id_AllMessages_id = '{}'.format(allMessages.id)
+            #insert_quesy_to_table = '''
+            #update all_messages set message_type='{}', message_caption='{}', message_value='{}' where message_id='{}';
+            #'''.format(moduleEdit_type_value, moduleEdit_message_caption, moduleEdit_message_value, moduleEdit_id_AllMessages_id)
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
+            #insert_quesy_to_table = '''
+            #update lessons_messages set lesson_id='{}', message_id='{}' where id='{}';
+            # '''.format(moduleEdit_id_lessons_id, moduleEdit_id_AllMessages_id, userEdit_pk)
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
             module.save()
             return render(request, 'index.html', {"it_user": user_is})
         else:
@@ -467,7 +503,7 @@ def lessonsmsgEdit(request, name_parts, pk):
 
 
 def questEdit(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         module = Quest.objects.get(id=pk)
@@ -482,12 +518,12 @@ def questEdit(request, name_parts, pk):
             moduleedit_quest_name = '{}'.format(request.POST.get("quest_name"))
             module.quest_description = request.POST.get("quest_description")
             moduleEdit_quest_description = '{}'.format(request.POST.get("quest_description"))
-            # insert_quesy_to_table = '''
-            # update quests set module_id='{}', lesson_id='{}', quest_name='{}', quest_description='{}' where quest_id='{}'; '''\
-            #     .format(moduleEdit_id_modules_id, moduleEdit_id_lessons_id, moduleedit_quest_name,
-            #                                            moduleEdit_quest_description, userEdit_pk)
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
+            #insert_quesy_to_table = '''
+            #update quests set module_id='{}', lesson_id='{}', quest_name='{}', quest_description='{}' where quest_id='{}'; '''\
+            #    .format(moduleEdit_id_modules_id, moduleEdit_id_lessons_id, moduleedit_quest_name,
+            #                                           moduleEdit_quest_description, userEdit_pk)
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
             module.save()
             return render(request, 'index.html', {"it_user": user_is})
         else:
@@ -498,7 +534,7 @@ def questEdit(request, name_parts, pk):
 
 
 def questmsgEdit(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         module = QuestMessage.objects.get(id=pk)
@@ -528,16 +564,16 @@ def questmsgEdit(request, name_parts, pk):
             else:
                 moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
             moduleEdit_id_AllMessages_id = "{}".format(allMessages.id)
-            # insert_quesy_to_table = '''
-            #  update all_messages set message_type='{}', message_caption='{}', message_value='{}' where message_id='{}';
-            #  '''.format(userEdit_type_value, messageEdit_value, messageEdit_caption, userEdit_pk)
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
-            # insert_quesy_to_table = '''
-            # update quests_messages set quest_id='{}', message_id='{}' where id='{}';
-            # '''.format(moduleEdit_quest_id_id, moduleEdit_id_AllMessages_id)
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
+            #insert_quesy_to_table = '''
+            # update all_messages set message_type='{}', message_caption='{}', message_value='{}' where message_id='{}';
+            # '''.format(userEdit_type_value, messageEdit_value, messageEdit_caption, userEdit_pk)
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
+            #insert_quesy_to_table = '''
+            #update quests_messages set quest_id='{}', message_id='{}' where id='{}';
+            #'''.format(moduleEdit_quest_id_id, moduleEdit_id_AllMessages_id)
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
             module.save()
             return render(request, 'index.html', {"it_user": user_is})
         else:
@@ -548,7 +584,7 @@ def questmsgEdit(request, name_parts, pk):
 
 
 def choicequestEdit(request, name_parts, pk):
- #   cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     try:
         module = QuestChoices.objects.get(id=pk)
@@ -563,12 +599,12 @@ def choicequestEdit(request, name_parts, pk):
             moduleEdit_сhoice_description = '{}'.format(request.POST.get('сhoice_description'))
             module.is_True = request.POST.get("is_true")
             moduleEdit_is_True = '{}'.format(request.POST.get("is_true"))
-            # insert_quesy_to_table = '''
-            # update quests_choices set quest_id='{}', choice_name='{}', choice_description='{}', is_true='{}'
-            # where choice_id='{}';'''.format(moduleEdit_quest_id_id, moduleEdit_choice_name,
-            #                                            moduleEdit_сhoice_description, moduleEdit_is_True, userEdit_pk)
-            # cursor.execute(insert_quesy_to_table)
-            # conn.commit()
+            #insert_quesy_to_table = '''
+            #update quests_choices set quest_id='{}', choice_name='{}', choice_description='{}', is_true='{}'
+            #where choice_id='{}';'''.format(moduleEdit_quest_id_id, moduleEdit_choice_name,
+            #                                           moduleEdit_сhoice_description, moduleEdit_is_True, userEdit_pk)
+            #cursor.execute(insert_quesy_to_table)
+            #conn.commit()
             module.save()
             return render(request, 'index.html', {"it_user": user_is})
         else:
@@ -580,7 +616,7 @@ def choicequestEdit(request, name_parts, pk):
 
 def DoneCreate(request, name_parts):
     user_is = request.user
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
 
     if request.method == "POST":
         user = User()
@@ -596,22 +632,35 @@ def DoneCreate(request, name_parts):
         user_user_role = '{}'.format(request.POST.get("user_role"))
         data_reg = '{}'.format(datetime.datetime.now())
         last_pk = User.objects.all().last().pk + 1
-        # insert_quesy_to_table = '''
-        # insert into users (date_reg, first_name, last_name, full_name, phone_number, user_email, is_confirm,
-        #                  user_role, subscribe, is_live)
-        # values ('{}', '', '', '{}', '{}', '{}', 0, '{}', '{}', 0);'''.format(data_reg, user_full_name,
-        # user_phone_number, user_email, user_subscribe, user_user_role)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #insert_quesy_to_table = '''
+        #insert into users (date_reg, first_name, last_name, full_name, phone_number, user_email, is_confirm,
+        #                 user_role, subscribe, is_live)
+        #values ('{}', '', '', '{}', '{}', '{}', 0, '{}', '{}', 0);'''.format(data_reg, user_full_name,
+        #user_phone_number, user_email, user_subscribe, user_user_role)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
+        user.save()
+    return render(request, 'index.html', {"it_user": user_is})
+
+
+def ThemesCreate(request, name_parts):
+    user_is = request.user
+    #cursor = conn.cursor()
+    if request.method == "POST":
+        user = Themes()
+        user.themes_names = request.POST.get('themes_names')
+        user_themes_names = '{}'.format(request.POST.get('themes_names'))
         user.save()
     return render(request, 'index.html', {"it_user": user_is})
 
 
 def ModuleCreate(request, name_parts):
     user_is = request.user
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     if request.method == "POST":
         user = Modules()
+        user.themes_id_id = request.POST.get('themes_id')
+        user_themes_id_id= '{}'.format(request.POST.get('themes_id'))
         user.module_name = request.POST.get("module_name")
         user_module_name = '{}'.format(request.POST.get("module_name"))
         user.module_description = request.POST.get("module_description")
@@ -623,17 +672,17 @@ def ModuleCreate(request, name_parts):
             user.module_photo = "Файл не найден"
             user_module_photo = 'Файл ненайден'
         #insert_quesy_to_table = '''
-        # insert into modules (module_name, module_description, module_photo)
-        # values ('{}', '{}', '{}');'''.format(user_module_name, user_description_module, user_module_photo)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #insert into modules (module_name, module_description, module_photo)
+        #values ('{}', '{}', '{}');'''.format(user_module_name, user_description_module, user_module_photo)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         user.save()
     return render(request, 'index.html', {"it_user": user_is})
 
 
 def LessonsCreated(request, name_parts):
     user_is = request.user
- #   cursor = conn.cursor()
+    #cursor = conn.cursor()
     if request.method == "POST":
         user = Lessons()
         user.id_modules_id = request.POST.get('id_modules')
@@ -644,18 +693,18 @@ def LessonsCreated(request, name_parts):
         user_lessons_description = '{}'.format(request.POST.get('lessons_description'))
         user.is_parent = request.POST.get("is_parent")
         user_is_parent = '{}'.format(request.POST.get('is_parent'))
-        # insert_quesy_to_table = '''
-        # insert into lessons (module_id, lesson_name, lesson_description, is_parent)
-        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_lessons_name, user_lessons_description,
-        #                                            user_is_parent)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #insert_quesy_to_table = '''
+        #insert into lessons (module_id, lesson_name, lesson_description, is_parent)
+        #values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_lessons_name, user_lessons_description,
+        #                                           user_is_parent)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         user.save()
     return render(request, 'index.html', {"it_user": user_is})
 
 
 def LessonsmsgCreated(request, name_parts):
- #   cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     if request.method == "POST":
         user = LessonsMessage()
@@ -686,23 +735,23 @@ def LessonsmsgCreated(request, name_parts):
         else:
             moduleEdit_message_value = '{}'.format(message_photos)
         user_id_AllMessages_id = '{}'.format(allMessages.id)
-        # insert_quesy_to_table = '''
-        # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
-        # '''.format(user_type_value, user_message_value, user_message_caption)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
-        # insert_quesy_to_table = '''
-        #  insert into lessons_messages(lesson_id, message_id)
-        #  values ('{}', '{}');
-        #  '''.format(user_id_lessons_id, user_id_AllMessages_id)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #insert_quesy_to_table = '''
+        #insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
+        #'''.format(user_type_value, user_message_value, user_message_caption)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
+        #insert_quesy_to_table = '''
+        # insert into lessons_messages(lesson_id, message_id)
+        # values ('{}', '{}');
+        # '''.format(user_id_lessons_id, user_id_AllMessages_id)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         user.save()
     return render(request, 'index.html', {"it_user": user_is})
 
 
 def questCreated(request, name_parts):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     if request.method == "POST":
         user = Quest()
@@ -714,18 +763,18 @@ def questCreated(request, name_parts):
         user_quest_name = '{}'.format(request.POST.get('quest_name'))
         user.quest_description = request.POST.get("quest_description")
         user_quest_description = '{}'.format(request.POST.get('quest_description'))
-        # insert_quesy_to_table = '''
-        # insert into quests (module_id, lesson_id, quest_name, quest_description)
-        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
-        #                                            user_quest_description)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #insert_quesy_to_table = '''
+        #insert into quests (module_id, lesson_id, quest_name, quest_description)
+        #values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
+        #                                           user_quest_description)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         user.save()
     return render(request, 'index.html', {"it_user": user_is})
 
 
 def questMsg(request, name_parts):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     if request.method == "POST":
         user = QuestMessage()
@@ -758,23 +807,23 @@ def questMsg(request, name_parts):
         else:
             moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
         user_id_AllMessages_id = '{}'.format(allMessages.id)
-        # insert_quesy_to_table = '''
-        # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
-        # '''.format(user_type_value, user_message_value, user_message_caption)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
-        # insert_quesy_to_table = '''
-        #  insert into quests_messages(quest_id, message_id)
-        #  values ('{}', '{}');
-        #  '''.format(user_quest_id_id, user_id_AllMessages_id)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #insert_quesy_to_table = '''
+        #insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
+        #'''.format(user_type_value, user_message_value, user_message_caption)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
+        #insert_quesy_to_table = '''
+        # insert into quests_messages(quest_id, message_id)
+        # values ('{}', '{}');
+        # '''.format(user_quest_id_id, user_id_AllMessages_id)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         user.save()
     return render(request, 'index.html', {"it_user": user_is})
 
 
 def qestchoiceCreated(request, name_parts):
-#    cursor = conn.cursor()
+    #cursor = conn.cursor()
     user_is = request.user
     if request.method == "POST":
         user = QuestChoices()
@@ -786,12 +835,12 @@ def qestchoiceCreated(request, name_parts):
         user_сhoice_description = '{}'.format(request.POST.get('сhoice_description'))
         user.is_True = request.POST.get("is_true")
         user_is_True = '{}'.format(request.POST.get("is_true"))
-        # insert_quesy_to_table = '''
-        # insert into quests_choices (quest_id, choice_name, choice_description, is_true)
-        # values ('{}', '{}', '{}', '{}');'''.format(user_quest_id_id, user_choice_name, user_сhoice_description,
-        #                                            user_is_True)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        #insert_quesy_to_table = '''
+        #insert into quests_choices (quest_id, choice_name, choice_description, is_true)
+        #values ('{}', '{}', '{}', '{}');'''.format(user_quest_id_id, user_choice_name, user_сhoice_description,
+        #                                           user_is_True)
+        #cursor.execute(insert_quesy_to_table)
+        #conn.commit()
         user.save()
     return render(request, 'index.html', {"it_user": user_is})
 
@@ -933,3 +982,4 @@ def exportToExcel(request):
                     ws.write(row_num, col_num, row[col_num], font_style)
     wb.save(response)
     return response
+

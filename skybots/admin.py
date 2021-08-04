@@ -9,6 +9,7 @@ admin.site.register(LessonsMessage)
 admin.site.register(Quest)
 admin.site.register(QuestMessage)
 admin.site.register(QuestChoices)
+admin.site.register(Themes)
 admin.site.register(User)
 admin.site.unregister(Group)
 

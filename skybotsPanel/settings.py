@@ -86,14 +86,14 @@ DATABASES = {
     }
 }
 
-#MySQL connector
+# MySQL connector
 
 # db_confg = {
 #     "mysql":{
-#         "host": "#",
-#         "db_name": "#",
-#         "user": "#",
-#         "pass": "#"
+#         "host": "",
+#         "db_name": "",
+#         "user": "",
+#         "pass": ""
 #     }
 # }
 
