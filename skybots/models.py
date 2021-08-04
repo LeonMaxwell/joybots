@@ -1,17 +1,20 @@
 import os
 import uuid
 
+
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+
 # Create your models here.
 
 
 def get_upload_path(instance, filename):
     return 'original_image/{uuid}/{filename}'.format(uuid=uuid.uuid4().hex, filename=filename)
+
 
 class AllMessage(models.Model):
     MESSAGE_TYPE = (
@@ -37,7 +40,7 @@ class AllMessage(models.Model):
 class Modules(models.Model):
     module_name = models.CharField(max_length=256, verbose_name="Имя модуля", unique=True)
     module_description = models.TextField(blank=True, null=True, verbose_name="Описание модуля")
-    module_photo = models.ImageField(upload_to=get_upload_path, blank=True, null=True, verbose_name="Фото модуля")
+    module_photo = models.ImageField(upload_to=get_upload_path, default=True, verbose_name="Фото модуля")
     data_create_module = models.DateTimeField(auto_now=True, verbose_name="Дата создания модуля")
 
     class Meta:

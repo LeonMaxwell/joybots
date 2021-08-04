@@ -13,6 +13,7 @@
                         <th>Электронная почта</th>
                         <th>Номер телефона</th>
                         <th>Роль пользователя</th>
+                        <th>Дата подписки</th>
                     {% elif type == "modules" %}
                         <th>ID</th>
                         <th>Имя модуля</th>
@@ -20,6 +21,7 @@
                         <th>Фото модуля</th>
                     {% elif type == "lessons" %}
                         <th>ID</th>
+                        <th>Название модуля</th>
                         <th>Имя урока</th>
                         <th>Описание урока</th>
                         <th>Тип урока</th>
@@ -59,6 +61,7 @@
                     <td>{{ foo.email }}</td>
                     <td>{{ foo.phone_number }}</td>
                     <td>{{ foo.user_role }}</td>
+                    <td>{{ foo.subscribe }}</td>
                     <td>
                         <a type="button" href="{% url 'userEdit' name_parts=type pk=foo.pk  %}"  id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'deleteUser' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
@@ -69,8 +72,13 @@
                 <tr>
                     <th scope="row">{{ foo.pk }}</th>
                     <td>{{ foo.module_name }}</td>
-                    <td>{{ foo.module_description }}</td>
-                    <td><a href="{{ foo.module_photo.url }}">{{ foo.module_photo }}</a></td>
+                    <td>{{ foo.module_description|truncatechars:40   }}</td>
+                    {% if foo.module_photo == "Файл не найден" %}
+                        <td><p style="color: red;">Файл не найден. </p></td>
+                    {% else %}
+                        <td><a href="{{ foo.module_photo.url }}">{{ foo.module_photo|truncatechars:40  }}</a></td>
+                    {% endif %}
+
                     <td>
                         <a type="button" href="{% url 'moduleEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'moduleDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
@@ -79,8 +87,9 @@
                 {% elif type == "lessons" %}
                 <tr>
                     <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.id_modules.module_name }}</td>
                     <td>{{ foo.lessons_name }}</td>
-                    <td>{{ foo.lessons_description }}</td>
+                    <td>{{ foo.lessons_description|truncatechars:40  }}</td>
                     {% if foo.is_parent == 1 %}
                         <td>Родитель</td>
                     {% elif foo.is_parent == 0 %}
@@ -96,11 +105,19 @@
                     <th scope="row">{{ foo.pk }}</th>
                     <td>{{ foo.id_lessons.lessons_name }}</td>
                     <td>{{ foo.id_AllMessages.message_type }}</td>
-                    <td>{{ foo.id_AllMessages.message_caption }}</td>
+                    <td>{{ foo.id_AllMessages.message_caption|truncatechars:40  }}</td>
                     {% if foo.id_AllMessages.message_type == "text" %}
-                        <td>{{ foo.id_AllMessages.message_value }}</td>
+                        {% if foo.id_AllMessages.message_value == "Текст не найден." %}
+                            <td><p style="color: red;">Текст ненайден.</p></td>
+                        {% else %}
+                            <td>{{ foo.id_AllMessages.message_value|truncatechars:40  }}</td>
+                        {% endif %}
                     {% else %}
-                        <td><a href="{{ foo.id_AllMessages.message_photos.url }}">{{ foo.id_AllMessages.message_photos.url }}</a></td>
+                        {% if foo.id_AllMessages.message_photos == "Фото не найдено." %}
+                            <td><p style="color: red;">Файл не найден. </p></td>
+                         {% else %}
+                            <td><a href="{{ foo.id_AllMessages.message_photos.url }}">{{ foo.id_AllMessages.message_photos.url|truncatechars:40  }}</a></td>
+                        {% endif %}
                     {% endif %}
                     <td>
                         <a type="button" href="{% url 'lessonsmsgEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
@@ -113,7 +130,7 @@
                     <td>{{ foo.id_lessons.lessons_name }}</td>
                     <td>{{ foo.id_lessons.id_modules.module_name }}</td>
                     <td>{{ foo.quest_name }}</td>
-                    <td>{{ foo.quest_description }}</td>
+                    <td>{{ foo.quest_description|truncatechars:40  }}</td>
                     <td>
                         <a type="button" href="{% url 'questEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'questsDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
@@ -125,9 +142,17 @@
                     <td>{{ foo.quest_id.quest_name }}</td>
                     <td>{{ foo.id_AllMessages.message_type }}</td>
                     {% if foo.id_AllMessages.message_type == "text" %}
-                        <td>{{ foo.id_AllMessages.message_value }}</td>
+                        {% if foo.id_AllMessages.message_value == "Текст не найден." %}
+                            <td><p style="color: red;">Текст ненайден.</p></td>
+                        {% else %}
+                            <td>{{ foo.id_AllMessages.message_value|truncatechars:40  }}</td>
+                        {% endif %}
                     {% else %}
-                        <td><a href="{{ foo.id_AllMessages.message_photos.url }}">{{ foo.id_AllMessages.message_photos.url }}</a></td>
+                          {% if foo.id_AllMessages.message_photos == "Фото не найдено." %}
+                            <td><p style="color: red;">Файл не найден. </p></td>
+                         {% else %}
+                            <td><a href="{{ foo.id_AllMessages.message_photos.url }}">{{ foo.id_AllMessages.message_photos.url|truncatechars:40  }}</a></td>
+                        {% endif %}
                     {% endif %}
                     <td>{{ foo.id_AllMessages.message_caption }}</td>
                     <td>
@@ -141,7 +166,7 @@
                     <td>{{ foo.quest_id.quest_name }}</td>
                     <td>{{ foo.choice_name }}</td>
                     <td>{{ foo.is_True }}</td>
-                    <td>{{ foo.сhoice_description }}</td>
+                    <td>{{ foo.сhoice_description|truncatechars:40  }}</td>
                     <td>
                         <a type="button" href="{% url 'choicequestEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'questschoiceDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'bootstrap4',
 ]
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -98,7 +99,6 @@ DATABASES = {
 
 
 
-
 AUTH_USER_MODEL = 'skybots.User'
 
 # Password validation
@@ -139,7 +139,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
 
 #PROJECT_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 MEDIA_URL = '/media/'

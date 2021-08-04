@@ -1,5 +1,5 @@
 from django import forms
-
+from django.core.exceptions import NON_FIELD_ERRORS
 
 from .models import *
 
@@ -20,14 +20,15 @@ class LoginUserForms(forms.ModelForm):
 class CreateUserForms(forms.ModelForm):
     class Meta:
         model = User
-        fields = ('full_name', 'email', 'phone_number', 'user_role')
+        fields = ('full_name', 'email', 'phone_number', 'user_role', 'subscribe')
+
+    subscribe = forms.DateTimeField(widget=forms.DateInput(attrs={'type': 'date'}))
 
 
 class CreateModuleForms(forms.ModelForm):
     class Meta:
         model = Modules
         fields = ('module_name', 'module_description', 'module_photo')
-
 
 class CreateLessonsForms(forms.ModelForm):
     class Meta:
@@ -36,7 +37,7 @@ class CreateLessonsForms(forms.ModelForm):
         id_modules = forms.ModelChoiceField(queryset=Modules.objects.all())
 
 
-class CreateMessageLessonsForms(forms.Form):
+class CreateMessageLessonsForms(forms.ModelForm):
     MESSAGE_TYPE = (
         ("text", "Текст"),
         ("photo", "Фото"),
@@ -46,7 +47,7 @@ class CreateMessageLessonsForms(forms.Form):
 
     class Meta:
         model = LessonsMessage
-        fields = ('id_lessons', 'id_AllMessages', 'message_photos')
+        fields = ('id_lessons','type_value', 'message_photos', 'message_caption', )
 
     id_lessons = forms.ModelChoiceField(queryset=Lessons.objects.all(), label="ID урока")
     type_value = forms.ChoiceField(choices=MESSAGE_TYPE, label="Тип сообщения")
@@ -55,7 +56,7 @@ class CreateMessageLessonsForms(forms.Form):
     message_value = forms.CharField(max_length=512, widget=forms.Textarea, label="Значение сообщения",required = False)
 
 
-class CreateQuestForms(forms.Form):
+class CreateQuestForms(forms.ModelForm):
     class Meta:
         model = Quest
         fields = ('id_lessons', 'id_modules', 'quest_name', 'quest_description')
@@ -66,7 +67,7 @@ class CreateQuestForms(forms.Form):
     quest_description = forms.CharField(widget=forms.Textarea, label="Описание квеста")
 
 
-class CreateMessageForQuestForms(forms.Form):
+class CreateMessageForQuestForms(forms.ModelForm):
     MESSAGE_TYPE = (
         ("text", "Текст"),
         ("photo", "Фото"),
@@ -75,7 +76,7 @@ class CreateMessageForQuestForms(forms.Form):
     )
     class Meta:
         model = QuestMessage
-        fields = ('quest_id', 'id_AllMessages')
+        fields = ('quest_id', 'type_value', 'message_photos', 'message_value', 'message_caption')
 
     quest_id = forms.ModelChoiceField(queryset=Quest.objects.all(), label="ID квеста")
     type_value = forms.ChoiceField(choices=MESSAGE_TYPE, label="Тип сообщения")
@@ -84,7 +85,7 @@ class CreateMessageForQuestForms(forms.Form):
     message_value = forms.CharField(max_length=512, widget=forms.Textarea, label="Значение сообщения",required = False)
 
 
-class CreateChoiceForQuestForms(forms.Form):
+class CreateChoiceForQuestForms(forms.ModelForm):
     TRUE_CHOICE = (
         ('true', "Верно"),
         ("false", "Неверно"),

@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import RequestContext
 from django.urls import reverse_lazy
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
@@ -114,7 +115,7 @@ class PartsView(CreateView):
 
 
 class CreateModels(CreateView):
-    form_class = CreateUserForms
+    form_class = CreateUserForms()
     model = User
     template_name = 'forms/forms_user.html'
     success_url = reverse_lazy('login')
@@ -150,7 +151,7 @@ class CreateModels(CreateView):
             self.form_class = CreateChoiceForQuestForms
             self.model = QuestChoices
             self.template_name = 'forms/form_questchoice.html'
-        return render(request, self.template_name, {'form': self.form_class, "it_user": user_is})
+        return render(request, self.template_name, {"model":self.model, 'form': self.form_class, "it_user": user_is})
 
 
 class EditModels(CreateView):
@@ -163,35 +164,37 @@ class EditModels(CreateView):
         type_cont = kwargs['name_parts']
         pk_cont = kwargs['pk']
         user_is = request.user
+
         if type_cont == 'users':
-            self.form_class = CreateUserForms
+            self.form_class = CreateUserForms(instance=self.model.objects.get(id=pk_cont))
             self.model = User
             self.template_name = 'forms/forms_user_edit.html'
         elif type_cont == 'modules':
-            self.form_class = CreateModuleForms
             self.model = Modules
+            self.form_class = CreateModuleForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/forms_modules_edit.html'
         elif type_cont == 'lessons':
-            self.form_class = CreateLessonsForms
             self.model = Lessons
+            self.form_class = CreateLessonsForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/forms_lessons_edit.html'
         elif type_cont == 'msglessons':
-            self.form_class = CreateMessageLessonsForms
             self.model = LessonsMessage
+            self.form_class = CreateMessageLessonsForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/forms_lessonsmsg.html'
         elif type_cont == 'quests':
-            self.form_class = CreateQuestForms
             self.model = Quest
+            self.form_class = CreateQuestForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/form_quest.html'
         elif type_cont == 'msgquests':
-            self.form_class = CreateMessageForQuestForms
             self.model = QuestMessage
+            self.form_class = CreateMessageForQuestForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/form_questmsg.html'
         elif type_cont == 'choicequests':
-            self.form_class = CreateChoiceForQuestForms
             self.model = QuestChoices
+            self.form_class = CreateChoiceForQuestForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/form_questchoice.html'
-        return render(request, self.template_name, {'form': self.form_class, 'pk': pk_cont, "it_user": user_is})
+        return render(request, self.template_name, {'form': self.form_class, 'pk': pk_cont, "it_user": user_is,
+                                                    "model":self.model})
 
 
 def userDelete(request, name_parts, pk):
@@ -316,10 +319,10 @@ def questschoiceDelete(request, name_parts, pk):
 def userEdit(request, name_parts, pk):
 #    cursor = conn.cursor()
     user_is = request.user
+    old_data = User.objects.get(id=pk)
+    user = User.objects.get(id=pk)
+    form = CreateUserForms(instance=user)
     try:
-        form = CreateUserForms
-        user = User.objects.get(id=pk)
-
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
             user.full_name = request.POST.get("full_name")
@@ -339,7 +342,7 @@ def userEdit(request, name_parts, pk):
             return render(request, 'index.html', {"it_user": user_is})
         else:
             return render(request, 'forms/forms_user_edit.html',
-                          {"pk": pk, "object": user, 'form': form, "it_user": user_is})
+                          {"pk": pk, "object": user, "old": old_data, 'form': form, "it_user": user_is})
     except User.DoesNotExist:
         return render(request, 'index.html', {"it_user": user_is})
 
@@ -348,8 +351,8 @@ def moduleEdit(request, name_parts, pk):
 #    cursor = conn.cursor()
     user_is = request.user
     try:
-        form = CreateModuleForms
         module = Modules.objects.get(id=pk)
+        form = CreateModuleForms(instance=module)
 
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
@@ -357,8 +360,17 @@ def moduleEdit(request, name_parts, pk):
             moduleEdit_module_name = '{}'.format(request.POST.get("module_name"))
             module.module_description = request.POST.get("module_description")
             moduleEit_module_description = '{}'.format(request.POST.get("module_description"))
-            module.module_photo = request.POST.get("module_photo")
-            moduleEdit_module_photo = '{}'.format(request.POST.get("module_photo"))
+            if module.module_photo:
+                if request.FILES.get('module_photo'):
+                    module.module_photo = request.FILES.get("module_photo")
+                    moduleEdit_module_photo = '{}'.format(request.FILES.get("module_photo"))
+            else:
+                if request.FILES.get('module_photo'):
+                    module.module_photo = request.FILES.get("module_photo")
+                    moduleEdit_module_photo = '{}'.format(request.FILES.get("module_photo"))
+                else:
+                    module.module_photo = "Изображение не найдено."
+                    moduleEdit_module_photo = 'Изображение не найдено.'
             # insert_quesy_to_table = '''
             # update modules set module_name='{}', module_description='{}', module_photo='{}' where module_pk='{}'; '''\
             #     .format(moduleEdit_module_name, moduleEit_module_description, moduleEdit_module_photo, userEdit_pk)
@@ -377,9 +389,8 @@ def lessonsEdit(request, name_parts, pk):
 #    cursor = conn.cursor()
     user_is = request.user
     try:
-        form = CreateLessonsForms
         module = Lessons.objects.get(id=pk)
-
+        form = CreateLessonsForms(instance=module)
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
             module.id_modules_id = request.POST.get('id_modules')
@@ -409,9 +420,14 @@ def lessonsmsgEdit(request, name_parts, pk):
 #    cursor = conn.cursor()
     user_is = request.user
     try:
-        form = CreateMessageLessonsForms
         module = LessonsMessage.objects.get(id=pk)
-
+        data = {
+           'message_photos': AllMessage.objects.get(pk=module.id_AllMessages_id).message_photos,
+            'message_value' : AllMessage.objects.get(pk=module.id_AllMessages_id).message_value,
+           'type_value': AllMessage.objects.get(pk=module.id_AllMessages_id).message_type,
+            'message_caption' : AllMessage.objects.get(pk=module.id_AllMessages_id).message_caption
+        }
+        form = CreateMessageLessonsForms(instance=module, initial=data)
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
             moduleEdit_id_lessons_id = '{}'.format(request.POST.get('id_lessons'))
@@ -443,6 +459,7 @@ def lessonsmsgEdit(request, name_parts, pk):
             module.save()
             return render(request, 'index.html', {"it_user": user_is})
         else:
+
             return render(request, 'forms/forms_lessonsmsg_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except LessonsMessage.DoesNotExist:
@@ -453,9 +470,8 @@ def questEdit(request, name_parts, pk):
 #    cursor = conn.cursor()
     user_is = request.user
     try:
-        form = CreateQuestForms
         module = Quest.objects.get(id=pk)
-
+        form = CreateQuestForms(instance=module)
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
             module.id_modules_id = request.POST.get('id_modules')
@@ -485,9 +501,14 @@ def questmsgEdit(request, name_parts, pk):
 #    cursor = conn.cursor()
     user_is = request.user
     try:
-        form = CreateMessageForQuestForms
         module = QuestMessage.objects.get(id=pk)
-
+        data = {
+           'message_photos': AllMessage.objects.get(pk=module.id_AllMessages_id).message_photos,
+            'message_value' : AllMessage.objects.get(pk=module.id_AllMessages_id).message_value,
+           'type_value': AllMessage.objects.get(pk=module.id_AllMessages_id).message_type,
+            'message_caption' : AllMessage.objects.get(pk=module.id_AllMessages_id).message_caption
+        }
+        form = CreateMessageForQuestForms(instance=module, initial=data)
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
             module.quest_id_id = request.POST.get('quest_id')
@@ -530,9 +551,8 @@ def choicequestEdit(request, name_parts, pk):
  #   cursor = conn.cursor()
     user_is = request.user
     try:
-        form = CreateChoiceForQuestForms
         module = QuestChoices.objects.get(id=pk)
-
+        form = CreateChoiceForQuestForms(instance=module)
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
             module.quest_id_id = request.POST.get('quest_id')
@@ -569,6 +589,8 @@ def DoneCreate(request, name_parts):
         user.email = request.POST.get("email")
         user_email = '{}'.format(request.POST.get("email"))
         user.phone_number = request.POST.get("phone_number")
+        user.subscribe = request.POST.get("subscribe")
+        user_subscribe = '{}'.format(request.POST.get("subscribe"))
         user_phone_number = '{}'.format(request.POST.get("phone_number"))
         user.user_role = request.POST.get("user_role")
         user_user_role = '{}'.format(request.POST.get("user_role"))
@@ -576,8 +598,9 @@ def DoneCreate(request, name_parts):
         last_pk = User.objects.all().last().pk + 1
         # insert_quesy_to_table = '''
         # insert into users (date_reg, first_name, last_name, full_name, phone_number, user_email, is_confirm,
-        #                  user_role, is_live)
-        # values ('{}', '', '', '{}', '{}', '{}', 0, '{}', 0);'''.format(data_reg, user_full_name, user_phone_number, user_email, user_user_role)
+        #                  user_role, subscribe, is_live)
+        # values ('{}', '', '', '{}', '{}', '{}', 0, '{}', '{}', 0);'''.format(data_reg, user_full_name,
+        # user_phone_number, user_email, user_subscribe, user_user_role)
         # cursor.execute(insert_quesy_to_table)
         # conn.commit()
         user.save()
@@ -593,8 +616,12 @@ def ModuleCreate(request, name_parts):
         user_module_name = '{}'.format(request.POST.get("module_name"))
         user.module_description = request.POST.get("module_description")
         user_description_module = '{}'.format(request.POST.get("module_description"))
-        user.module_photo = request.FILES.get("module_photo")
-        user_module_photo = '{}'.format(request.POST.get("module_photo"))
+        if request.FILES.get("module_photo"):
+            user.module_photo = request.FILES.get("module_photo")
+            user_module_photo = '{}'.format(request.POST.get("module_photo"))
+        else:
+            user.module_photo = "Файл не найден"
+            user_module_photo = 'Файл ненайден'
         #insert_quesy_to_table = '''
         # insert into modules (module_name, module_description, module_photo)
         # values ('{}', '{}', '{}');'''.format(user_module_name, user_description_module, user_module_photo)
@@ -636,18 +663,28 @@ def LessonsmsgCreated(request, name_parts):
         user_id_lessons_id = '{}'.format(request.POST.get('id_lessons'))
         type_value = request.POST.get('type_value')
         user_type_value = '{}'.format(request.POST.get('type_value'))
-        message_value = request.POST.get("message_value")
-        user_message_value = '{}'.format(request.POST.get('message_value'))
-        message_photos = request.FILES.get("message_photos")
+        message_photos = None
+        message_value = None
+        if type_value == "text":
+            if request.POST.get("message_value"):
+                message_value = request.POST.get("message_value")
+                user_message_value = '{}'.format(request.POST.get('message_value'))
+            else:
+                message_value = "Текст не найден."
+        else:
+            if request.POST.get("message_photos"):
+                message_photos = request.FILES.get("message_photos")
+            else:
+                message_photos = "Фото не найдено."
         message_caption = request.POST.get("message_caption")
         user_message_caption = '{}'.format(request.POST.get('message_caption'))
         allMessages = AllMessage.objects.create(message_type=type_value, message_photos=message_photos,
                                                 message_value=message_value, message_caption=message_caption)
         user.id_AllMessages_id = allMessages.id
         if type_value == "text":
-            moduleEdit_message_value = '{}'.format(request.POST.get("message_value"))
+            moduleEdit_message_value = '{}'.format(message_value)
         else:
-            moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
+            moduleEdit_message_value = '{}'.format(message_photos)
         user_id_AllMessages_id = '{}'.format(allMessages.id)
         # insert_quesy_to_table = '''
         # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
@@ -692,14 +729,25 @@ def questMsg(request, name_parts):
     user_is = request.user
     if request.method == "POST":
         user = QuestMessage()
+        message_photos = None
+        message_value = None
         user.quest_id_id = request.POST.get('quest_id')
         user_quest_id_id = '{}'.format(request.POST.get('quest_id'))
         type_value = request.POST.get('type_value')
         user_type_value = '{}'.format(request.POST.get('type_value'))
-        message_value = request.POST.get("message_value")
-        user_message_value = '{}'.format(request.POST.get("message_value"))
+        if type_value == "text":
+            if request.POST.get("message_value"):
+                message_value = request.POST.get("message_value")
+                user_message_value = '{}'.format(request.POST.get('message_value'))
+            else:
+                message_value = "Текст не найден."
+        else:
+            if request.POST.get("message_photos"):
+                message_photos = request.FILES.get("message_photos")
+            else:
+                message_photos = "Фото не найдено."
+
         message_caption = request.POST.get("message_caption")
-        message_photos = request.FILES.get("message_photos")
         user_message_photos = '{}'.format(request.FILES.get("message_photos"))
         user_message_caption = '{}'.format(request.POST.get("message_caption"))
         allMessages = AllMessage.objects.create(message_type=type_value, message_value=message_value,
