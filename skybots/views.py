@@ -13,32 +13,32 @@ from .forms import LoginUserForms
 from .models import *
 
 
-#from skybotsPanel.settings import connection
-#import mysql.connector
-#from mysql.connector import Error
-#from skybotsPanel.settings import db_confg
-
-
-#def create_connection_mysql_db(db_host, db_name, user_name, user_password):
-#    connection_db = None
-#    try:
-#        connection_db = mysql.connector.connect(
-#            host=db_host,
-#            user=user_name,
-#            password=user_password,
-#            database=db_name,
-#        )
-#        print("Пдключение к MySQL успешно выполнено")
-#    except Error as db_connection_error:
-#        print("Возникла ошибка: ", db_connection_error)
-#    return connection_db
-
-
-#conn = create_connection_mysql_db(db_confg["mysql"]["host"],
-#                                  db_confg["mysql"]["db_name"],
-#                                  db_confg["mysql"]["user"],
-#                                  db_confg["mysql"]["pass"])
-
+# from skybotsPanel.settings import connection
+# import mysql.connector
+# from mysql.connector import Error
+# from skybotsPanel.settings import db_confg
+#
+#
+# def create_connection_mysql_db(db_host, db_name, user_name, user_password):
+#     connection_db = None
+#     try:
+#         connection_db = mysql.connector.connect(
+#             host=db_host,
+#             user=user_name,
+#             password=user_password,
+#             database=db_name,
+#         )
+#         print("Пдключение к MySQL успешно выполнено")
+#     except Error as db_connection_error:
+#         print("Возникла ошибка: ", db_connection_error)
+#     return connection_db
+#
+#
+# conn = create_connection_mysql_db(db_confg["mysql"]["host"],
+#                                   db_confg["mysql"]["db_name"],
+#                                   db_confg["mysql"]["user"],
+#                                   db_confg["mysql"]["pass"])
+#
 
 class LoginUser(FormView):
     template_name = "elements/login.html"
@@ -47,7 +47,9 @@ class LoginUser(FormView):
     def get(self, request, *args, **kwargs):
         userData = User.objects.all()
         allMessagesData = AllMessage.objects.all()
+        themeData = Themes.objects.all()
         modulesData = Modules.objects.all()
+        vocabularyData = Vocabulary.objects.all()
         quest = Quest.objects.all()
         questData = QuestMessage.objects.all()
         lessons = Lessons.objects.all()
@@ -56,6 +58,8 @@ class LoginUser(FormView):
         if user_is.is_authenticated:
             return render(request, 'index.html', {"it_user": user_is,
                                                   "userData": userData,
+                                                  'themesData': themeData,
+                                                  'vocabularyData':vocabularyData,
                                                   "allMessagesData": allMessagesData,
                                                   "modulesData": modulesData,
                                                   "quest": quest,
@@ -82,7 +86,6 @@ class LoginUser(FormView):
 
 
 class PartsView(CreateView):
-
     def get(self, request, *args, **kwargs):
         data_for_table = 0
         type_cont = kwargs['name_parts']
@@ -98,6 +101,8 @@ class PartsView(CreateView):
             data_for_table = AllMessage.objects.all()
         elif type_cont == 'msglessons':
             data_for_table = LessonsMessage.objects.all()
+        elif type_cont == 'vocabulary':
+            data_for_table = Vocabulary.objects.all()
         elif type_cont == 'quests':
             data_for_table = Quest.objects.all()
         elif type_cont == 'msgquests':
@@ -128,6 +133,10 @@ class CreateModels(CreateView):
             self.form_class = CreateThemesForms
             self.model = Themes
             self.template_name = 'forms/forms_themes.html'
+        elif type_cont == 'vocabulary':
+            self.form_class = CreateVocabularyForms
+            self.model = Vocabulary
+            self.template_name = 'forms/forms_vocabulary.html'
         elif type_cont == 'modules':
             self.form_class = CreateModuleForms
             self.model = Modules
@@ -152,7 +161,7 @@ class CreateModels(CreateView):
             self.form_class = CreateChoiceForQuestForms
             self.model = QuestChoices
             self.template_name = 'forms/form_questchoice.html'
-        return render(request, self.template_name, {"model":self.model, 'form': self.form_class, "it_user": user_is})
+        return render(request, self.template_name, {"model": self.model, 'form': self.form_class, "it_user": user_is})
 
 
 class EditModels(CreateView):
@@ -186,6 +195,10 @@ class EditModels(CreateView):
             self.model = LessonsMessage
             self.form_class = CreateMessageLessonsForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/forms_lessonsmsg.html'
+        elif type_cont == 'vocabulary':
+            self.model = Vocabulary
+            self.form_class = CreateVocabularyForms(instance=self.model.objects.get(id=pk_cont))
+            self.template_name = 'forms/forms_vocabulary.html.html'
         elif type_cont == 'quests':
             self.model = Quest
             self.form_class = CreateQuestForms(instance=self.model.objects.get(id=pk_cont))
@@ -199,144 +212,233 @@ class EditModels(CreateView):
             self.form_class = CreateChoiceForQuestForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/form_questchoice.html'
         return render(request, self.template_name, {'form': self.form_class, 'pk': pk_cont, "it_user": user_is,
-                                                    "model":self.model})
+                                                    "model": self.model})
 
 
 def userDelete(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = User.objects.all()
     try:
         model = User.objects.get(id=pk)
-        #userDelete_pk = '{}'.format(pk)
-        #insert_quesy_to_table = '''
-        #delete from users where user_id='{}';''' \
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from users where user_id='{}';''' \
         #    .format(userDelete_pk)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         model.delete()
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
     except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 
 def themesDelete(request, name_parts, pk):
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = Themes.objects.all()
     try:
         model = Themes.objects.get(id=pk)
         model.delete()
-        return render(request, 'index.html', {"it_user": user_is})
-    except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except Themes.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 
 def moduleDelete(request, name_parts, pk):
     user_is = request.user
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
+    type_cont = name_parts
+    data_for_table = Modules.objects.all()
     try:
         model = Modules.objects.get(id=pk)
-        #userDelete_pk = '{}'.format(pk)
-        #insert_quesy_to_table = '''
-        #delete from modules where module_id='{}';''' \
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from modules where module_id='{}';''' \
         #    .format(userDelete_pk)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         model.delete()
-        return render(request, 'index.html', {"it_user": user_is})
-    except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except Modules.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 
 def lessonsDelete(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = Lessons.objects.all()
     try:
         model = Lessons.objects.get(id=pk)
-        #userDelete_pk = '{}'.format(pk)
-        #insert_quesy_to_table = '''
-        #delete from lessons where lesson_id='{}';''' \
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from lessons where lesson_id='{}';''' \
         #    .format(userDelete_pk)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         model.delete()
-        return render(request, 'index.html', {"it_user": user_is})
-    except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except Lessons.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 
 def lessonsmsgDelete(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = LessonsMessage.objects.all()
     try:
         model = LessonsMessage.objects.get(id=pk)
-        #userDelete_pk = '{}'.format(pk)
-        #insert_quesy_to_table = '''
-        #delete from lessons_messages where id='{}';''' \
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from lessons_messages where id='{}';''' \
         #    .format(userDelete_pk)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         model.delete()
-        return render(request, 'index.html', {"it_user": user_is})
-    except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except LessonsMessage.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+
+def vocabularyDelete(request, name_parts, pk):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = Vocabulary.objects.all()
+    try:
+        model = Vocabulary.objects.get(id=pk)
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from lessons_messages where id='{}';''' \
+        #    .format(userDelete_pk)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        model.delete()
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except Vocabulary.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 
 def questsDelete(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = Quest.objects.all()
     try:
         model = Quest.objects.get(id=pk)
-        #userDelete_pk = '{}'.format(pk)
-        #insert_quesy_to_table = '''
-        #delete from quests where quest_id='{}';''' \
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from quests where quest_id='{}';''' \
         #    .format(userDelete_pk)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         model.delete()
-        return render(request, 'index.html', {"it_user": user_is})
-    except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except Quest.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 
 def questsmsgDelete(request, name_parts, pk):
-#    cursor = conn.cursor()
+    #    cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = QuestMessage.objects.all()
     try:
         model = QuestMessage.objects.get(id=pk)
-        #userDelete_pk = '{}'.format(pk)
-        #insert_quesy_to_table = '''
-        #delete from quests_messages where id='{}';''' \
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from quests_messages where id='{}';''' \
         #    .format(userDelete_pk)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         model.delete()
-        return render(request, 'index.html', {"it_user": user_is})
-    except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except QuestMessage.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 
 def questschoiceDelete(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = QuestChoices.objects.all()
     try:
         model = QuestChoices.objects.get(id=pk)
-        #userDelete_pk = '{}'.format(pk)
-        #insert_quesy_to_table = '''
-        #delete from quests_choices where choice_id='{}';''' \
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from quests_choices where choice_id='{}';''' \
         #    .format(userDelete_pk)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         model.delete()
-        return render(request, 'index.html', {"it_user": user_is})
-    except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
-
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except QuestChoices.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 def userEdit(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
     old_data = User.objects.get(id=pk)
     user = User.objects.get(id=pk)
     form = CreateUserForms(instance=user)
+    type_cont = name_parts
+    data_for_table = User.objects.all()
     try:
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
@@ -348,42 +450,64 @@ def userEdit(request, name_parts, pk):
             userEditPhone_number = '{}'.format(request.POST.get("phone_number"))
             user.user_role = request.POST.get("user_role")
             userEdit_user_role = '{}'.format(request.POST.get("user_role"))
-            #insert_quesy_to_table = '''
-            #update users set full_name='{}', phone_number='{}', user_email='{}', user_role='{}' where user_id='{}';'''\
+            # insert_quesy_to_table = '''
+            # update users set full_name='{}', phone_number='{}', user_email='{}', user_role='{}' where user_id='{}';'''\
             #    .format(userEdit_full_name, userEditPhone_number,userEditEmail,userEdit_user_role, userEdit_pk)
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
             user.save()
-            return render(request, 'index.html', {"it_user": user_is})
+            return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
         else:
             return render(request, 'forms/forms_user_edit.html',
                           {"pk": pk, "object": user, "old": old_data, 'form': form, "it_user": user_is})
     except User.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'index.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
 
 
 def themesEdit(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = Themes.objects.all()
     try:
         module = Themes.objects.get(id=pk)
         form = CreateThemesForms(instance=module)
 
         if request.method == "POST":
-            userEdit_pk= '{}'.format(pk)
+            userEdit_pk = '{}'.format(pk)
             module.themes_names = request.POST.get("themes_names")
+            module_themes_names = '{}'.format(request.POST.get("themes_names"))
+            # insert_quesy_to_table = '''
+            # update themes set theme_name='{}' where theme_id='{}'; '''\
+            #     .format(module_themes_names, userEdit_pk)
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
             module.save()
-            return render(request, 'index.html', {"it_user": user_is})
+            return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
         else:
             return render(request, 'forms/forms_themes_edit.html',
-                  {"pk": pk, "object": module, 'form': form, "it_user": user_is})
+                          {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except Themes.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
 
 
 def moduleEdit(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = Modules.objects.all()
     try:
         module = Modules.objects.get(id=pk)
         form = CreateModuleForms(instance=module)
@@ -407,23 +531,31 @@ def moduleEdit(request, name_parts, pk):
                 else:
                     module.module_photo = "Изображение не найдено."
                     moduleEdit_module_photo = 'Изображение не найдено.'
-            #insert_quesy_to_table = '''
-            #update modules set module_name='{}', module_description='{}', module_photo='{}' where module_pk='{}'; '''\
+            # insert_quesy_to_table = '''
+            # update modules set module_name='{}', module_description='{}', module_photo='{}' where module_pk='{}'; '''\
             #    .format(moduleEdit_module_name, moduleEit_module_description, moduleEdit_module_photo, userEdit_pk)
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
             module.save()
-            return render(request, 'index.html', {"it_user": user_is})
+            return render(request, 'elements/input.html', {
+                "type": type_cont,
+                "it_user": user_is,
+                "date": data_for_table})
         else:
             return render(request, 'forms/forms_modules_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except Modules.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
 
 
 def lessonsEdit(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = Lessons.objects.all()
     try:
         module = Lessons.objects.get(id=pk)
         form = CreateLessonsForms(instance=module)
@@ -437,31 +569,38 @@ def lessonsEdit(request, name_parts, pk):
             moduleEdit_lessons_description = '{}'.format(request.POST.get("lessons_description"))
             module.is_parent = request.POST.get("is_parent")
             moduleEdit_is_parent = '{}'.format(request.POST.get("is_parent"))
-            #insert_quesy_to_table = '''
-            #update lessons set module_id='{}', lesson_name='{}', lesson_description='{}', is_parent='{}' where lesson_id='{}';'''\
+            # insert_quesy_to_table = '''
+            # update lessons set module_id='{}', lesson_name='{}', lesson_description='{}', is_parent='{}' where lesson_id='{}';'''\
             #    .format(module_id_modules_id, moduleEdit_lessons_name, moduleEdit_lessons_description,
             #                                           moduleEdit_is_parent,userEdit_pk )
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
             module.save()
-            return render(request, 'index.html', {"it_user": user_is})
+            return render(request, 'elements/input.html', {
+                "type": type_cont,
+                "it_user": user_is,
+                "date": data_for_table})
         else:
             return render(request, 'forms/forms_lessons_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except Lessons.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
 
 
 def lessonsmsgEdit(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = LessonsMessage.objects.all()
     try:
         module = LessonsMessage.objects.get(id=pk)
         data = {
-           'message_photos': AllMessage.objects.get(pk=module.id_AllMessages_id).message_photos,
-            'message_value' : AllMessage.objects.get(pk=module.id_AllMessages_id).message_value,
-           'type_value': AllMessage.objects.get(pk=module.id_AllMessages_id).message_type,
-            'message_caption' : AllMessage.objects.get(pk=module.id_AllMessages_id).message_caption
+            'message_photos': AllMessage.objects.get(pk=module.id_AllMessages_id).message_photos,
+            'type_value': AllMessage.objects.get(pk=module.id_AllMessages_id).message_type,
+            'message_caption': AllMessage.objects.get(pk=module.id_AllMessages_id).message_caption
         }
         form = CreateMessageLessonsForms(instance=module, initial=data)
         if request.method == "POST":
@@ -470,41 +609,109 @@ def lessonsmsgEdit(request, name_parts, pk):
             module.id_lessons_id = request.POST.get('id_lessons')
             type_value = request.POST.get('type_value')
             moduleEdit_type_value = '{}'.format(request.POST.get('type_value'))
-            message_value = request.POST.get("message_value")
-            message_photo = request.FILES.get("message_photos")
+            message_photos = None
+            if request.FILES.get("message_photos"):
+                message_photos = request.FILES.get("message_photos")
+            elif module.id_AllMessages.message_photos:
+                message_photos = module.id_AllMessages.message_photos
+            else:
+                message_photos = "Документ не найден."
             message_caption = request.POST.get("message_caption")
             moduleEdit_message_caption = '{}'.format(request.POST.get("message_caption"))
-            allMessages = AllMessage.objects.create(message_type=type_value, message_value=message_value,
-                                                    message_caption=message_caption, message_photos=message_photo)
+            allMessages = AllMessage.objects.create(message_type=type_value, message_caption=message_caption,
+                                                    message_photos=message_photos)
             module.id_AllMessages_id = allMessages.id
-            if type_value == "text":
-                moduleEdit_message_value = '{}'.format(request.POST.get("message_value"))
-            else:
-                moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
-            #moduleEdit_id_AllMessages_id = '{}'.format(allMessages.id)
-            #insert_quesy_to_table = '''
-            #update all_messages set message_type='{}', message_caption='{}', message_value='{}' where message_id='{}';
-            #'''.format(moduleEdit_type_value, moduleEdit_message_caption, moduleEdit_message_value, moduleEdit_id_AllMessages_id)
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
-            #insert_quesy_to_table = '''
-            #update lessons_messages set lesson_id='{}', message_id='{}' where id='{}';
+            moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
+            # moduleEdit_id_AllMessages_id = '{}'.format(allMessages.id)
+            # insert_quesy_to_table = '''
+            # update all_messages set message_type='{}', message_caption='{}', message_value='{}' where message_id='{}';
+            # '''.format(moduleEdit_type_value, moduleEdit_message_caption, moduleEdit_message_value, moduleEdit_id_AllMessages_id)
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
+            # insert_quesy_to_table = '''
+            # update lessons_messages set lesson_id='{}', message_id='{}' where id='{}';
             # '''.format(moduleEdit_id_lessons_id, moduleEdit_id_AllMessages_id, userEdit_pk)
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
             module.save()
-            return render(request, 'index.html', {"it_user": user_is})
+            return render(request, 'elements/input.html', {
+                "type": type_cont,
+                "it_user": user_is,
+                "date": data_for_table})
         else:
 
             return render(request, 'forms/forms_lessonsmsg_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except LessonsMessage.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
+
+def vocabularyEdit(request, name_parts, pk):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = Vocabulary.objects.all()
+    try:
+        module = Vocabulary.objects.get(id=pk)
+        data = {
+            'message_photos': AllMessage.objects.get(pk=module.message_id_id).message_photos,
+            'type_value': AllMessage.objects.get(pk=module.message_id_id).message_type,
+            'message_caption': AllMessage.objects.get(pk=module.message_id_id).message_caption
+        }
+        form = CreateVocabularyForms(instance=module, initial=data)
+        if request.method == "POST":
+            userEdit_pk = '{}'.format(pk)
+            moduleEdit_id_lessons_id = '{}'.format(request.POST.get('id_lessons'))
+            module.message_id_id = request.POST.get('id_lessons')
+            type_value = request.POST.get('type_value')
+            moduleEdit_type_value = '{}'.format(request.POST.get('type_value'))
+            message_photos = None
+            if request.FILES.get("message_photos"):
+                message_photos = request.FILES.get("message_photos")
+            elif module.message_id.message_photos:
+                message_photos = module.message_id.message_photos
+            else:
+                message_photos = "Документ не найден."
+            message_caption = request.POST.get("message_caption")
+            moduleEdit_message_caption = '{}'.format(request.POST.get("message_caption"))
+            allMessages = AllMessage.objects.create(message_type=type_value, message_caption=message_caption,
+                                                    message_photos=message_photos)
+            module.message_id_id = allMessages.id
+            moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
+            # moduleEdit_id_AllMessages_id = '{}'.format(allMessages.id)
+            # insert_quesy_to_table = '''
+            # update all_messages set message_type='{}', message_caption='{}', message_value='{}' where message_id='{}';
+            # '''.format(moduleEdit_type_value, moduleEdit_message_caption, moduleEdit_message_value, moduleEdit_id_AllMessages_id)
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
+            # insert_quesy_to_table = '''
+            # update lessons_messages set lesson_id='{}', message_id='{}' where id='{}';
+            # '''.format(moduleEdit_id_lessons_id, moduleEdit_id_AllMessages_id, userEdit_pk)
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
+            module.save()
+            return render(request, 'elements/input.html', {
+                "type": type_cont,
+                "it_user": user_is,
+                "date": data_for_table})
+        else:
+
+            return render(request, 'forms/forms_lessonsmsg_edit.html',
+                          {"pk": pk, "object": module, 'form': form, "it_user": user_is})
+    except Vocabulary.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
 
 
 def questEdit(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = Quest.objects.all()
     try:
         module = Quest.objects.get(id=pk)
         form = CreateQuestForms(instance=module)
@@ -518,31 +725,38 @@ def questEdit(request, name_parts, pk):
             moduleedit_quest_name = '{}'.format(request.POST.get("quest_name"))
             module.quest_description = request.POST.get("quest_description")
             moduleEdit_quest_description = '{}'.format(request.POST.get("quest_description"))
-            #insert_quesy_to_table = '''
-            #update quests set module_id='{}', lesson_id='{}', quest_name='{}', quest_description='{}' where quest_id='{}'; '''\
+            # insert_quesy_to_table = '''
+            # update quests set module_id='{}', lesson_id='{}', quest_name='{}', quest_description='{}' where quest_id='{}'; '''\
             #    .format(moduleEdit_id_modules_id, moduleEdit_id_lessons_id, moduleedit_quest_name,
             #                                           moduleEdit_quest_description, userEdit_pk)
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
             module.save()
-            return render(request, 'index.html', {"it_user": user_is})
+            return render(request, 'elements/input.html', {
+                "type": type_cont,
+                "it_user": user_is,
+                "date": data_for_table})
         else:
             return render(request, 'forms/forms_quest_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except Quest.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
 
 
 def questmsgEdit(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = QuestMessage.objects.all()
     try:
         module = QuestMessage.objects.get(id=pk)
         data = {
-           'message_photos': AllMessage.objects.get(pk=module.id_AllMessages_id).message_photos,
-            'message_value' : AllMessage.objects.get(pk=module.id_AllMessages_id).message_value,
-           'type_value': AllMessage.objects.get(pk=module.id_AllMessages_id).message_type,
-            'message_caption' : AllMessage.objects.get(pk=module.id_AllMessages_id).message_caption
+            'message_photos': AllMessage.objects.get(pk=module.id_AllMessages_id).message_photos,
+            'type_value': AllMessage.objects.get(pk=module.id_AllMessages_id).message_type,
+            'message_caption': AllMessage.objects.get(pk=module.id_AllMessages_id).message_caption
         }
         form = CreateMessageForQuestForms(instance=module, initial=data)
         if request.method == "POST":
@@ -551,41 +765,48 @@ def questmsgEdit(request, name_parts, pk):
             moduleEdit_quest_id_id = '{}'.format(request.POST.get('quest_id'))
             type_value = request.POST.get('type_value')
             userEdit_type_value = '{}'.format(request.POST.get('type_value'))
-            message_value = request.POST.get("message_value")
-            messageEdit_value = '{}'.format(request.POST.get("message_value"))
             message_caption = request.POST.get("message_caption")
-            message_photo = request.FILES.get("message_photos")
-            messageEdit_caption = '{}'.format(request.POST.get("message_caption"))
-            allMessages = AllMessage.objects.create(message_type=type_value, message_value=message_value,
-                                                    message_caption=message_caption, message_photos=message_photo)
-            module.id_AllMessages_id = allMessages.id
-            if type_value == "text":
-                moduleEdit_message_value = '{}'.format(request.POST.get("message_value"))
+            message_photos = None
+            if request.FILES.get("message_photos"):
+                message_photos = request.FILES.get("message_photos")
             else:
-                moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
+                message_photos = "Документ не найден."
+            messageEdit_caption = '{}'.format(request.POST.get("message_caption"))
+            allMessages = AllMessage.objects.create(message_type=type_value,message_caption=message_caption,
+                                                    message_photos=message_photos)
+            module.id_AllMessages_id = allMessages.id
+            moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
             moduleEdit_id_AllMessages_id = "{}".format(allMessages.id)
-            #insert_quesy_to_table = '''
+            # insert_quesy_to_table = '''
             # update all_messages set message_type='{}', message_caption='{}', message_value='{}' where message_id='{}';
             # '''.format(userEdit_type_value, messageEdit_value, messageEdit_caption, userEdit_pk)
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
-            #insert_quesy_to_table = '''
-            #update quests_messages set quest_id='{}', message_id='{}' where id='{}';
-            #'''.format(moduleEdit_quest_id_id, moduleEdit_id_AllMessages_id)
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
+            # insert_quesy_to_table = '''
+            # update quests_messages set quest_id='{}', message_id='{}' where id='{}';
+            # '''.format(moduleEdit_quest_id_id, moduleEdit_id_AllMessages_id)
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
             module.save()
-            return render(request, 'index.html', {"it_user": user_is})
+            return render(request, 'elements/input.html', {
+                "type": type_cont,
+                "it_user": user_is,
+                "date": data_for_table})
         else:
             return render(request, 'forms/forms_quest_msg_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except QuestMessage.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
 
 
 def choicequestEdit(request, name_parts, pk):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = QuestChoices.objects.all()
     try:
         module = QuestChoices.objects.get(id=pk)
         form = CreateChoiceForQuestForms(instance=module)
@@ -599,24 +820,32 @@ def choicequestEdit(request, name_parts, pk):
             moduleEdit_сhoice_description = '{}'.format(request.POST.get('сhoice_description'))
             module.is_True = request.POST.get("is_true")
             moduleEdit_is_True = '{}'.format(request.POST.get("is_true"))
-            #insert_quesy_to_table = '''
-            #update quests_choices set quest_id='{}', choice_name='{}', choice_description='{}', is_true='{}'
-            #where choice_id='{}';'''.format(moduleEdit_quest_id_id, moduleEdit_choice_name,
+            # insert_quesy_to_table = '''
+            # update quests_choices set quest_id='{}', choice_name='{}', choice_description='{}', is_true='{}'
+            # where choice_id='{}';'''.format(moduleEdit_quest_id_id, moduleEdit_choice_name,
             #                                           moduleEdit_сhoice_description, moduleEdit_is_True, userEdit_pk)
-            #cursor.execute(insert_quesy_to_table)
-            #conn.commit()
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
             module.save()
-            return render(request, 'index.html', {"it_user": user_is})
+            return render(request, 'elements/input.html', {
+                "type": type_cont,
+                "it_user": user_is,
+                "date": data_for_table})
         else:
             return render(request, 'forms/forms_quest_choice_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except QuestChoices.DoesNotExist:
-        return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
 
 
 def DoneCreate(request, name_parts):
     user_is = request.user
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
+    type_cont = name_parts
+    data_for_table = User.objects.all()
 
     if request.method == "POST":
         user = User()
@@ -624,6 +853,8 @@ def DoneCreate(request, name_parts):
         user_full_name = '{}'.format(request.POST.get("full_name"))
         user.email = request.POST.get("email")
         user_email = '{}'.format(request.POST.get("email"))
+        user.user_id = request.POST.get("user_id")
+        user_user_id = '{}'.format(request.POST.get("user_id"))
         user.phone_number = request.POST.get("phone_number")
         user.subscribe = request.POST.get("subscribe")
         user_subscribe = '{}'.format(request.POST.get("subscribe"))
@@ -632,35 +863,45 @@ def DoneCreate(request, name_parts):
         user_user_role = '{}'.format(request.POST.get("user_role"))
         data_reg = '{}'.format(datetime.datetime.now())
         last_pk = User.objects.all().last().pk + 1
-        #insert_quesy_to_table = '''
-        #insert into users (date_reg, first_name, last_name, full_name, phone_number, user_email, is_confirm,
+        # insert_quesy_to_table = '''
+        # insert into users (date_reg, first_name, last_name, full_name, phone_number, user_email, is_confirm,
         #                 user_role, subscribe, is_live)
-        #values ('{}', '', '', '{}', '{}', '{}', 0, '{}', '{}', 0);'''.format(data_reg, user_full_name,
-        #user_phone_number, user_email, user_subscribe, user_user_role)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # values ('{}', '', '', '{}', '{}', '{}', 0, '{}', '{}', 0);'''.format(data_reg, user_full_name,
+        # user_phone_number, user_email, user_subscribe, user_user_role)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         user.save()
-    return render(request, 'index.html', {"it_user": user_is})
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table})
 
 
 def ThemesCreate(request, name_parts):
     user_is = request.user
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
+    type_cont = name_parts
+    data_for_table = Themes.objects.all()
     if request.method == "POST":
         user = Themes()
         user.themes_names = request.POST.get('themes_names')
         user_themes_names = '{}'.format(request.POST.get('themes_names'))
         user.save()
-    return render(request, 'index.html', {"it_user": user_is})
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table})
 
 
 def ModuleCreate(request, name_parts):
     user_is = request.user
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
+    type_cont = name_parts
+    data_for_table = Modules.objects.all()
     if request.method == "POST":
         user = Modules()
         user.themes_id_id = request.POST.get('themes_id')
-        user_themes_id_id= '{}'.format(request.POST.get('themes_id'))
+        user_themes_id_id = '{}'.format(request.POST.get('themes_id'))
         user.module_name = request.POST.get("module_name")
         user_module_name = '{}'.format(request.POST.get("module_name"))
         user.module_description = request.POST.get("module_description")
@@ -670,19 +911,24 @@ def ModuleCreate(request, name_parts):
             user_module_photo = '{}'.format(request.POST.get("module_photo"))
         else:
             user.module_photo = "Файл не найден"
-            user_module_photo = 'Файл ненайден'
-        #insert_quesy_to_table = '''
-        #insert into modules (module_name, module_description, module_photo)
-        #values ('{}', '{}', '{}');'''.format(user_module_name, user_description_module, user_module_photo)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+            user_module_photo = 'Файл не найден'
+        # insert_quesy_to_table = '''
+        # insert into modules (module_name, module_description, module_photo)
+        # values ('{}', '{}', '{}');'''.format(user_module_name, user_description_module, user_module_photo)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         user.save()
-    return render(request, 'index.html', {"it_user": user_is})
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table})
 
 
 def LessonsCreated(request, name_parts):
     user_is = request.user
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
+    type_cont = name_parts
+    data_for_table = Lessons.objects.all()
     if request.method == "POST":
         user = Lessons()
         user.id_modules_id = request.POST.get('id_modules')
@@ -693,19 +939,24 @@ def LessonsCreated(request, name_parts):
         user_lessons_description = '{}'.format(request.POST.get('lessons_description'))
         user.is_parent = request.POST.get("is_parent")
         user_is_parent = '{}'.format(request.POST.get('is_parent'))
-        #insert_quesy_to_table = '''
-        #insert into lessons (module_id, lesson_name, lesson_description, is_parent)
-        #values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_lessons_name, user_lessons_description,
+        # insert_quesy_to_table = '''
+        # insert into lessons (module_id, lesson_name, lesson_description, is_parent)
+        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_lessons_name, user_lessons_description,
         #                                           user_is_parent)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         user.save()
-    return render(request, 'index.html', {"it_user": user_is})
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table})
 
 
 def LessonsmsgCreated(request, name_parts):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = LessonsMessage.objects.all()
     if request.method == "POST":
         user = LessonsMessage()
         user.id_lessons_id = request.POST.get('id_lessons')
@@ -713,46 +964,81 @@ def LessonsmsgCreated(request, name_parts):
         type_value = request.POST.get('type_value')
         user_type_value = '{}'.format(request.POST.get('type_value'))
         message_photos = None
-        message_value = None
-        if type_value == "text":
-            if request.POST.get("message_value"):
-                message_value = request.POST.get("message_value")
-                user_message_value = '{}'.format(request.POST.get('message_value'))
-            else:
-                message_value = "Текст не найден."
+        if request.FILES.get("message_photos"):
+            message_photos = request.FILES.get("message_photos")
         else:
-            if request.POST.get("message_photos"):
-                message_photos = request.FILES.get("message_photos")
-            else:
-                message_photos = "Фото не найдено."
+            message_photos = "Документ не найден."
         message_caption = request.POST.get("message_caption")
         user_message_caption = '{}'.format(request.POST.get('message_caption'))
         allMessages = AllMessage.objects.create(message_type=type_value, message_photos=message_photos,
-                                                message_value=message_value, message_caption=message_caption)
+                                                message_caption=message_caption)
         user.id_AllMessages_id = allMessages.id
-        if type_value == "text":
-            moduleEdit_message_value = '{}'.format(message_value)
-        else:
-            moduleEdit_message_value = '{}'.format(message_photos)
+        moduleEdit_message_value = '{}'.format(message_photos)
         user_id_AllMessages_id = '{}'.format(allMessages.id)
-        #insert_quesy_to_table = '''
-        #insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
-        #'''.format(user_type_value, user_message_value, user_message_caption)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
-        #insert_quesy_to_table = '''
+        # insert_quesy_to_table = '''
+        # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
+        # '''.format(user_type_value, user_message_value, user_message_caption)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        # insert_quesy_to_table = '''
         # insert into lessons_messages(lesson_id, message_id)
         # values ('{}', '{}');
         # '''.format(user_id_lessons_id, user_id_AllMessages_id)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         user.save()
-    return render(request, 'index.html', {"it_user": user_is})
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+
+
+def VocabularyCreated(request, name_parts):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = Vocabulary.objects.all()
+    if request.method == "POST":
+        user = Vocabulary()
+        user.message_id_id = request.POST.get('id_lessons')
+        user_id_lessons_id = '{}'.format(request.POST.get('id_lessons'))
+        type_value = request.POST.get('type_value')
+        user_type_value = '{}'.format(request.POST.get('type_value'))
+        message_photos = None
+        if request.FILES.get("message_photos"):
+            message_photos = request.FILES.get("message_photos")
+        else:
+            message_photos = "Документ не найден."
+        message_caption = request.POST.get("message_caption")
+        user_message_caption = '{}'.format(request.POST.get('message_caption'))
+        allMessages = AllMessage.objects.create(message_type=type_value, message_photos=message_photos,
+                                                message_caption=message_caption)
+        user.message_id_id = allMessages.id
+        moduleEdit_message_value = '{}'.format(message_photos)
+        user_id_AllMessages_id = '{}'.format(allMessages.id)
+        # insert_quesy_to_table = '''
+        # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
+        # '''.format(user_type_value, user_message_value, user_message_caption)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        # insert_quesy_to_table = '''
+        # insert into vocabulary(lesson_id, message_id)
+        # values ('{}', '{}');
+        # '''.format(user_id_lessons_id, user_id_AllMessages_id)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        user.save()
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
 
 
 def questCreated(request, name_parts):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = Quest.objects.all()
     if request.method == "POST":
         user = Quest()
         user.id_modules_id = request.POST.get('id_modules')
@@ -763,19 +1049,24 @@ def questCreated(request, name_parts):
         user_quest_name = '{}'.format(request.POST.get('quest_name'))
         user.quest_description = request.POST.get("quest_description")
         user_quest_description = '{}'.format(request.POST.get('quest_description'))
-        #insert_quesy_to_table = '''
-        #insert into quests (module_id, lesson_id, quest_name, quest_description)
-        #values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
+        # insert_quesy_to_table = '''
+        # insert into quests (module_id, lesson_id, quest_name, quest_description)
+        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
         #                                           user_quest_description)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         user.save()
-    return render(request, 'index.html', {"it_user": user_is})
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table, })
 
 
 def questMsg(request, name_parts):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = QuestMessage.objects.all()
     if request.method == "POST":
         user = QuestMessage()
         message_photos = None
@@ -784,47 +1075,41 @@ def questMsg(request, name_parts):
         user_quest_id_id = '{}'.format(request.POST.get('quest_id'))
         type_value = request.POST.get('type_value')
         user_type_value = '{}'.format(request.POST.get('type_value'))
-        if type_value == "text":
-            if request.POST.get("message_value"):
-                message_value = request.POST.get("message_value")
-                user_message_value = '{}'.format(request.POST.get('message_value'))
-            else:
-                message_value = "Текст не найден."
+        if request.FILES.get("message_photos"):
+            message_photos = request.FILES.get("message_photos")
         else:
-            if request.POST.get("message_photos"):
-                message_photos = request.FILES.get("message_photos")
-            else:
-                message_photos = "Фото не найдено."
-
+            message_photos = "Документ не найден."
         message_caption = request.POST.get("message_caption")
         user_message_photos = '{}'.format(request.FILES.get("message_photos"))
         user_message_caption = '{}'.format(request.POST.get("message_caption"))
-        allMessages = AllMessage.objects.create(message_type=type_value, message_value=message_value,
-                                                message_photos=message_photos,message_caption=message_caption)
+        allMessages = AllMessage.objects.create(message_type=type_value, message_photos=message_photos,
+                                                message_caption=message_caption)
         user.id_AllMessages_id = allMessages.id
-        if type_value == "text":
-            moduleEdit_message_value = '{}'.format(request.POST.get("message_value"))
-        else:
-            moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
+        moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
         user_id_AllMessages_id = '{}'.format(allMessages.id)
-        #insert_quesy_to_table = '''
-        #insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
-        #'''.format(user_type_value, user_message_value, user_message_caption)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
-        #insert_quesy_to_table = '''
+        # insert_quesy_to_table = '''
+        # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
+        # '''.format(user_type_value, user_message_value, user_message_caption)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        # insert_quesy_to_table = '''
         # insert into quests_messages(quest_id, message_id)
         # values ('{}', '{}');
         # '''.format(user_quest_id_id, user_id_AllMessages_id)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         user.save()
-    return render(request, 'index.html', {"it_user": user_is})
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table, })
 
 
 def qestchoiceCreated(request, name_parts):
-    #cursor = conn.cursor()
+    # cursor = conn.cursor()
     user_is = request.user
+    type_cont = name_parts
+    data_for_table = QuestChoices.objects.all()
     if request.method == "POST":
         user = QuestChoices()
         user.quest_id_id = request.POST.get('quest_id')
@@ -835,14 +1120,17 @@ def qestchoiceCreated(request, name_parts):
         user_сhoice_description = '{}'.format(request.POST.get('сhoice_description'))
         user.is_True = request.POST.get("is_true")
         user_is_True = '{}'.format(request.POST.get("is_true"))
-        #insert_quesy_to_table = '''
-        #insert into quests_choices (quest_id, choice_name, choice_description, is_true)
-        #values ('{}', '{}', '{}', '{}');'''.format(user_quest_id_id, user_choice_name, user_сhoice_description,
+        # insert_quesy_to_table = '''
+        # insert into quests_choices (quest_id, choice_name, choice_description, is_true)
+        # values ('{}', '{}', '{}', '{}');'''.format(user_quest_id_id, user_choice_name, user_сhoice_description,
         #                                           user_is_True)
-        #cursor.execute(insert_quesy_to_table)
-        #conn.commit()
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
         user.save()
-    return render(request, 'index.html', {"it_user": user_is})
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table, })
 
 
 class LogOut(LogoutView):
@@ -920,7 +1208,7 @@ def exportToExcel(request):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
             rows = lessons.objects.all().values_list('id_modules', 'lessons_name', 'lessons_description',
-                                                   'data_create_lessons', )
+                                                     'data_create_lessons', )
             rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
                     rows]
             for row in rows:
@@ -942,7 +1230,7 @@ def exportToExcel(request):
                     ws.write(row_num, col_num, row[col_num], font_style)
         elif models == "quests":
             columns = [
-                'id_modules', 'id_lessons', 'quest_name', 'quest_description', 'data_create_quest',]
+                'id_modules', 'id_lessons', 'quest_name', 'quest_description', 'data_create_quest', ]
             for col_num in range(len(columns)):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
@@ -960,7 +1248,7 @@ def exportToExcel(request):
             for col_num in range(len(columns)):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
-            rows = questsMessage.objects.all().values_list('quest_id', 'id_AllMessages',)
+            rows = questsMessage.objects.all().values_list('quest_id', 'id_AllMessages', )
             rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
                     rows]
             for row in rows:
@@ -973,7 +1261,7 @@ def exportToExcel(request):
             for col_num in range(len(columns)):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
-            rows = questsChoices.objects.all().values_list('quest_id', 'choice_name', 'сhoice_description', 'is_True',)
+            rows = questsChoices.objects.all().values_list('quest_id', 'choice_name', 'сhoice_description', 'is_True', )
             rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
                     rows]
             for row in rows:
@@ -982,4 +1270,3 @@ def exportToExcel(request):
                     ws.write(row_num, col_num, row[col_num], font_style)
     wb.save(response)
     return response
-
