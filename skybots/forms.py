@@ -22,7 +22,7 @@ class CreateUserForms(forms.ModelForm):
         model = User
         fields = ('user_id', 'full_name', 'email', 'phone_number', 'user_role', 'subscribe')
 
-    subscribe = forms.DateTimeField(widget=forms.DateInput(attrs={'type': 'date'}))
+    subscribe = forms.DateTimeField(widget=forms.DateInput(attrs={'type': 'date'}), label="Подписка")
 
 
 class CreateThemesForms(forms.ModelForm):
@@ -34,16 +34,16 @@ class CreateThemesForms(forms.ModelForm):
 class CreateModuleForms(forms.ModelForm):
     class Meta:
         model = Modules
-        fields = ('themes_id', 'module_name', 'module_description', 'module_photo')
+        fields = ('themes_id', 'module_name', 'module_description', 'module_photo', 'module_video')
 
-    themes_id = forms.ModelChoiceField(queryset=Themes.objects.all())
+    themes_id = forms.ModelChoiceField(queryset=Themes.objects.all(), label="ID темы")
 
 
 class CreateLessonsForms(forms.ModelForm):
     class Meta:
         model = Lessons
-        fields = ('id_modules', 'lessons_name', 'lessons_description', 'is_parent')
-        id_modules = forms.ModelChoiceField(queryset=Modules.objects.all())
+        fields = ('id_modules', 'is_short', 'is_parent', 'lessons_name', 'lessons_description')
+    id_modules = forms.ModelChoiceField(queryset=Modules.objects.all(), label="ID модуля")
 
 
 class CreateMessageLessonsForms(forms.ModelForm):
@@ -126,3 +126,9 @@ class CreateChoiceForQuestForms(forms.ModelForm):
     сhoice_description = forms.CharField(max_length=512, label="Описание выбора")
 
 
+class CreateAchievementsForms(forms.ModelForm):
+    class Meta:
+        model = Achievements
+        fields = ('lesson_id', 'achieve_name', 'achieve_description', 'achieve_photo')
+
+    lesson_id = forms.ModelChoiceField(queryset=Lessons.objects.all(), label="ID урока")

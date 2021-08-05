@@ -1,4 +1,4 @@
-    <form method="post"  enctype="multipart/form-data" action="{% url 'questmsgEdit' pk=pk name_parts="choicequests"%}">
+    <form method="post"  enctype="multipart/form-data" action="{% url 'questmsgEdit' pk=pk name_parts="msgquests"%}">
         {% csrf_token %}
         {{ form.as_p }}
 

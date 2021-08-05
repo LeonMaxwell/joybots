@@ -1,4 +1,4 @@
-    <form method="post"  enctype="multipart/form-data" action="{% url 'questmsgCreated' name_parts="lessons"%}">
+    <form method="post"  enctype="multipart/form-data" action="{% url 'questmsgCreated' name_parts="msgquests"%}">
         {% csrf_token %}
         {{ form.as_p }}
 

@@ -54,6 +54,7 @@ class LoginUser(FormView):
         questData = QuestMessage.objects.all()
         lessons = Lessons.objects.all()
         lessonsData = LessonsMessage.objects.all()
+        achievements = Achievements.objects.all()
         user_is = request.user
         if user_is.is_authenticated:
             return render(request, 'index.html', {"it_user": user_is,
@@ -65,7 +66,8 @@ class LoginUser(FormView):
                                                   "quest": quest,
                                                   "questData": questData,
                                                   "lessons": lessons,
-                                                  "lessonsData": lessonsData, })
+                                                  "lessonsData": lessonsData,
+                                                  "achievements": achievements})
         else:
             return render(request, self.template_name, {'form': self.form_class, 'act': 'login'})
 
@@ -109,6 +111,8 @@ class PartsView(CreateView):
             data_for_table = QuestMessage.objects.all()
         elif type_cont == 'choicequests':
             data_for_table = QuestChoices.objects.all()
+        elif type_cont == 'achievements':
+            data_for_table = Achievements.objects.all()
         user_is = request.user
         return render(request, 'elements/input.html', {
             "type": type_cont,
@@ -161,6 +165,10 @@ class CreateModels(CreateView):
             self.form_class = CreateChoiceForQuestForms
             self.model = QuestChoices
             self.template_name = 'forms/form_questchoice.html'
+        elif type_cont == 'achievements':
+            self.form_class = CreateAchievementsForms
+            self.model = Achievements
+            self.template_name = 'forms/forms_achievements.html'
         return render(request, self.template_name, {"model": self.model, 'form': self.form_class, "it_user": user_is})
 
 
@@ -198,7 +206,7 @@ class EditModels(CreateView):
         elif type_cont == 'vocabulary':
             self.model = Vocabulary
             self.form_class = CreateVocabularyForms(instance=self.model.objects.get(id=pk_cont))
-            self.template_name = 'forms/forms_vocabulary.html.html'
+            self.template_name = 'forms/forms_vocabulary.html'
         elif type_cont == 'quests':
             self.model = Quest
             self.form_class = CreateQuestForms(instance=self.model.objects.get(id=pk_cont))
@@ -332,6 +340,7 @@ def lessonsmsgDelete(request, name_parts, pk):
             "it_user": user_is,
             "date": data_for_table, })
 
+
 def vocabularyDelete(request, name_parts, pk):
     # cursor = conn.cursor()
     user_is = request.user
@@ -430,6 +439,32 @@ def questschoiceDelete(request, name_parts, pk):
             "type": type_cont,
             "it_user": user_is,
             "date": data_for_table, })
+
+
+def achievementsDelete(request, name_parts, pk):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = Achievements.objects.all()
+    try:
+        model = Achievements.objects.get(id=pk)
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from quests_choices where choice_id='{}';''' \
+        #    .format(userDelete_pk)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        model.delete()
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except Achievements.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+
 
 def userEdit(request, name_parts, pk):
     # cursor = conn.cursor()
@@ -531,6 +566,17 @@ def moduleEdit(request, name_parts, pk):
                 else:
                     module.module_photo = "Изображение не найдено."
                     moduleEdit_module_photo = 'Изображение не найдено.'
+            if module.module_video:
+                if request.FILES.get('module_video'):
+                    module.module_video = request.FILES.get("module_video")
+                    moduleEdit_module_video = '{}'.format(request.FILES.get("module_video"))
+            else:
+                if request.FILES.get('module_video'):
+                    module.module_video = request.FILES.get("module_video")
+                    moduleEdit_module_video = '{}'.format(request.FILES.get("module_video"))
+                else:
+                    module.module_photo = "Видео не найдено."
+                    moduleEdit_module_photo = 'Видео не найдено.'
             # insert_quesy_to_table = '''
             # update modules set module_name='{}', module_description='{}', module_photo='{}' where module_pk='{}'; '''\
             #    .format(moduleEdit_module_name, moduleEit_module_description, moduleEdit_module_photo, userEdit_pk)
@@ -569,6 +615,8 @@ def lessonsEdit(request, name_parts, pk):
             moduleEdit_lessons_description = '{}'.format(request.POST.get("lessons_description"))
             module.is_parent = request.POST.get("is_parent")
             moduleEdit_is_parent = '{}'.format(request.POST.get("is_parent"))
+            module.is_short = request.POST.get("is_short")
+            moduleEdit_is_short = '{}'.format(request.POST.get("is_short"))
             # insert_quesy_to_table = '''
             # update lessons set module_id='{}', lesson_name='{}', lesson_description='{}', is_parent='{}' where lesson_id='{}';'''\
             #    .format(module_id_modules_id, moduleEdit_lessons_name, moduleEdit_lessons_description,
@@ -648,6 +696,7 @@ def lessonsmsgEdit(request, name_parts, pk):
             "it_user": user_is,
             "date": data_for_table})
 
+
 def vocabularyEdit(request, name_parts, pk):
     # cursor = conn.cursor()
     user_is = request.user
@@ -664,7 +713,7 @@ def vocabularyEdit(request, name_parts, pk):
         if request.method == "POST":
             userEdit_pk = '{}'.format(pk)
             moduleEdit_id_lessons_id = '{}'.format(request.POST.get('id_lessons'))
-            module.message_id_id = request.POST.get('id_lessons')
+            module.id_lessons_id = request.POST.get('id_lessons')
             type_value = request.POST.get('type_value')
             moduleEdit_type_value = '{}'.format(request.POST.get('type_value'))
             message_photos = None
@@ -698,7 +747,7 @@ def vocabularyEdit(request, name_parts, pk):
                 "date": data_for_table})
         else:
 
-            return render(request, 'forms/forms_lessonsmsg_edit.html',
+            return render(request, 'forms/forms_vocabulary_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except Vocabulary.DoesNotExist:
         return render(request, 'elements/input.html', {
@@ -769,6 +818,8 @@ def questmsgEdit(request, name_parts, pk):
             message_photos = None
             if request.FILES.get("message_photos"):
                 message_photos = request.FILES.get("message_photos")
+            elif module.id_AllMessages.message_photos:
+                message_photos = module.id_AllMessages.message_photos
             else:
                 message_photos = "Документ не найден."
             messageEdit_caption = '{}'.format(request.POST.get("message_caption"))
@@ -818,8 +869,8 @@ def choicequestEdit(request, name_parts, pk):
             moduleEdit_choice_name = '{}'.format(request.POST.get('choice_name'))
             module.сhoice_description = request.POST.get('сhoice_description')
             moduleEdit_сhoice_description = '{}'.format(request.POST.get('сhoice_description'))
-            module.is_True = request.POST.get("is_true")
-            moduleEdit_is_True = '{}'.format(request.POST.get("is_true"))
+            module.is_True = request.POST.get("is_True")
+            moduleEdit_is_True = '{}'.format(request.POST.get("is_True"))
             # insert_quesy_to_table = '''
             # update quests_choices set quest_id='{}', choice_name='{}', choice_description='{}', is_true='{}'
             # where choice_id='{}';'''.format(moduleEdit_quest_id_id, moduleEdit_choice_name,
@@ -835,6 +886,54 @@ def choicequestEdit(request, name_parts, pk):
             return render(request, 'forms/forms_quest_choice_edit.html',
                           {"pk": pk, "object": module, 'form': form, "it_user": user_is})
     except QuestChoices.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
+
+
+def achievementsEdit(request, name_parts, pk):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = Achievements.objects.all()
+    try:
+        module = Achievements.objects.get(id=pk)
+        form = CreateAchievementsForms(instance=module)
+
+        if request.method == "POST":
+            userEdit_pk = '{}'.format(pk)
+            module.lesson_id_id = request.POST.get('lesson_id')
+            module_lesson_id_id = '{}'.format(request.POST.get('lesson_id'))
+            module.achieve_name = request.POST.get("achieve_name")
+            moduleEdit_achieve_name = '{}'.format(request.POST.get("achieve_name"))
+            module.achieve_description = request.POST.get("achieve_description")
+            moduleEit_achieve_description = '{}'.format(request.POST.get("achieve_description"))
+            if module.achieve_photo:
+                if request.FILES.get('achieve_photo'):
+                    module.achieve_photo = request.FILES.get("achieve_photo")
+                    moduleEdit_achieve_photo = '{}'.format(request.FILES.get("achieve_photo"))
+            else:
+                if request.FILES.get('achieve_photo'):
+                    module.achieve_photo = request.FILES.get("achieve_photo")
+                    moduleEdit_achieve_photo = '{}'.format(request.FILES.get("achieve_photo"))
+                else:
+                    module.achieve_photo = "Изображение не найдено."
+                    moduleEdit_achieve_photo = 'Изображение не найдено.'
+            # insert_quesy_to_table = '''
+            # update modules set module_name='{}', module_description='{}', module_photo='{}' where module_pk='{}'; '''\
+            #    .format(moduleEdit_module_name, moduleEit_module_description, moduleEdit_module_photo, userEdit_pk)
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
+            module.save()
+            return render(request, 'elements/input.html', {
+                "type": type_cont,
+                "it_user": user_is,
+                "date": data_for_table})
+        else:
+            return render(request, 'forms/forms_achievements_edit.html',
+                          {"pk": pk, "object": module, 'form': form, "it_user": user_is})
+    except Achievements.DoesNotExist:
         return render(request, 'elements/input.html', {
             "type": type_cont,
             "it_user": user_is,
@@ -912,6 +1011,12 @@ def ModuleCreate(request, name_parts):
         else:
             user.module_photo = "Файл не найден"
             user_module_photo = 'Файл не найден'
+        if request.FILES.get("module_video"):
+            user.module_video = request.FILES.get("module_video")
+            user_module_video = '{}'.format(request.POST.get("module_video"))
+        else:
+            user.module_video = "Файл не найден"
+            user_module_video = 'Файл не найден'
         # insert_quesy_to_table = '''
         # insert into modules (module_name, module_description, module_photo)
         # values ('{}', '{}', '{}');'''.format(user_module_name, user_description_module, user_module_photo)
@@ -939,6 +1044,8 @@ def LessonsCreated(request, name_parts):
         user_lessons_description = '{}'.format(request.POST.get('lessons_description'))
         user.is_parent = request.POST.get("is_parent")
         user_is_parent = '{}'.format(request.POST.get('is_parent'))
+        user.is_short = request.POST.get("is_short")
+        user_is_short = '{}'.format(request.POST.get('is_short'))
         # insert_quesy_to_table = '''
         # insert into lessons (module_id, lesson_name, lesson_description, is_parent)
         # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_lessons_name, user_lessons_description,
@@ -1000,8 +1107,8 @@ def VocabularyCreated(request, name_parts):
     data_for_table = Vocabulary.objects.all()
     if request.method == "POST":
         user = Vocabulary()
-        user.message_id_id = request.POST.get('id_lessons')
-        user_id_lessons_id = '{}'.format(request.POST.get('id_lessons'))
+        user.id_lessons_id = request.POST.get('id_lessons')
+        user_message_id_id = '{}'.format(request.POST.get('id_lessons'))
         type_value = request.POST.get('type_value')
         user_type_value = '{}'.format(request.POST.get('type_value'))
         message_photos = None
@@ -1047,6 +1154,8 @@ def questCreated(request, name_parts):
         user_id_lessons_id = '{}'.format(request.POST.get('id_lessons'))
         user.quest_name = request.POST.get("quest_name")
         user_quest_name = '{}'.format(request.POST.get('quest_name'))
+        user.is_hard = request.POST.get("is_hard")
+        user_is_hard = '{}'.format(request.POST.get("is_hard"))
         user.quest_description = request.POST.get("quest_description")
         user_quest_description = '{}'.format(request.POST.get('quest_description'))
         # insert_quesy_to_table = '''
@@ -1118,12 +1227,42 @@ def qestchoiceCreated(request, name_parts):
         user_choice_name = '{}'.format(request.POST.get('choice_name'))
         user.сhoice_description = request.POST.get('сhoice_description')
         user_сhoice_description = '{}'.format(request.POST.get('сhoice_description'))
-        user.is_True = request.POST.get("is_true")
-        user_is_True = '{}'.format(request.POST.get("is_true"))
+        user.is_True = request.POST.get("is_True")
+        user_is_True = '{}'.format(request.POST.get("is_True"))
         # insert_quesy_to_table = '''
         # insert into quests_choices (quest_id, choice_name, choice_description, is_true)
         # values ('{}', '{}', '{}', '{}');'''.format(user_quest_id_id, user_choice_name, user_сhoice_description,
         #                                           user_is_True)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        user.save()
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table, })
+
+
+def achievementsCreated(request, name_parts):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = Achievements.objects.all()
+    if request.method == "POST":
+        user = Achievements()
+        user.lesson_id_id = request.POST.get('lesson_id')
+        user_lesson_id_id = '{}'.format(request.POST.get('lesson_id'))
+        user.achieve_name = request.POST.get("achieve_name")
+        user_achieve_name = '{}'.format(request.POST.get('achieve_name'))
+        user.achieve_description = request.POST.get("achieve_description")
+        user_achieve_description = '{}'.format(request.POST.get("achieve_description"))
+        if request.FILES.get("achieve_photo"):
+            user.achieve_photo = request.FILES.get("achieve_photo")
+        else:
+            user.achieve_photo = "Документ не найден."
+        # insert_quesy_to_table = '''
+        # insert into quests (module_id, lesson_id, quest_name, quest_description)
+        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
+        #                                           user_quest_description)
         # cursor.execute(insert_quesy_to_table)
         # conn.commit()
         user.save()

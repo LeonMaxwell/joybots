@@ -23,12 +23,14 @@
                         <th>Имя модуля</th>
                         <th>Описание модуля</th>
                         <th>Фото модуля</th>
+                        <th>Видео модуля</th>
                     {% elif type == "lessons" %}
                         <th>ID</th>
                         <th>Название модуля</th>
+                        <th>Версия урока</th>
+                        <th>Тип урока</th>
                         <th>Имя урока</th>
                         <th>Описание урока</th>
-                        <th>Тип урока</th>
                     {% elif type == "msglessons" %}
                         <th>ID</th>
                         <th>Имя урока</th>
@@ -47,6 +49,7 @@
                         <th>Название модуля</th>
                         <th>Название квеста</th>
                         <th>Описание квеста</th>
+                        <th>Сложность квеста</th>
                     {% elif type == "msgquests" %}
                         <th>ID</th>
                         <th>Название квеста</th>
@@ -59,6 +62,12 @@
                         <th>Название выбора для квеста</th>
                         <th>Верность выбора</th>
                         <th>Описание выбора</th>
+                    {% elif type == "achievements" %}
+                        <th>ID</th>
+                        <th>ID урока</th>
+                        <th>Имя ачивки</th>
+                        <th>Описание ачивки</th>
+                        <th>Описание ачивки</th>
                     {% endif %}
                 </thead>
             {% for foo in date %}
@@ -98,7 +107,11 @@
                     {% else %}
                         <td><a href="{{ foo.module_photo.url }}">{{ foo.module_photo|truncatechars:40  }}</a></td>
                     {% endif %}
-
+                    {% if foo.module_video == "Файл не найден" %}
+                        <td><p style="color: red;">Файл не найден. </p></td>
+                    {% else %}
+                        <td><a href="{{ foo.module_video.url }}">{{ foo.module_video|truncatechars:40  }}</a></td>
+                    {% endif %}
                     <td>
                         <a type="button" href="{% url 'moduleEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'moduleDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
@@ -108,13 +121,20 @@
                 <tr>
                     <th scope="row">{{ foo.pk }}</th>
                     <td>{{ foo.id_modules.module_name }}</td>
-                    <td>{{ foo.lessons_name }}</td>
-                    <td>{{ foo.lessons_description|truncatechars:40  }}</td>
+                    {% if foo.is_short == 0 %}
+                        <td>Краткая версия</td>
+                    {% elif foo.is_short == 1 %}
+                        <td>Полная версия</td>
+                    {% endif %}
                     {% if foo.is_parent == 1 %}
                         <td>Родитель</td>
                     {% elif foo.is_parent == 0 %}
                         <td>Ребенок</td>
+                    {% elif foo.is_parent == 2 %}
+                        <td>Для всех</td>
                     {% endif %}
+                    <td>{{ foo.lessons_name }}</td>
+                    <td>{{ foo.lessons_description|truncatechars:40  }}</td>
                     <td>
                         <a type="button" href="{% url 'lessonsEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'lessonsDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
@@ -159,6 +179,11 @@
                     <td>{{ foo.id_lessons.id_modules.module_name }}</td>
                     <td>{{ foo.quest_name }}</td>
                     <td>{{ foo.quest_description|truncatechars:40  }}</td>
+                    {% if foo.is_hard == '0' %}
+                        <td>Легко</td>
+                    {% elif foo.is_hard == '1' %}
+                        <td>Сложно</td>
+                    {% endif %}
                     <td>
                         <a type="button" href="{% url 'questEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'questsDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
@@ -185,11 +210,31 @@
                     <th scope="row">{{ foo.pk }}</th>
                     <td>{{ foo.quest_id.quest_name }}</td>
                     <td>{{ foo.choice_name }}</td>
-                    <td>{{ foo.is_True }}</td>
+                    {% if foo.is_True == 'true' %}
+                        <td>Верно</td>
+                    {% else %}
+                        <td>Не верно</td>
+                    {% endif %}
                     <td>{{ foo.сhoice_description|truncatechars:40  }}</td>
                     <td>
                         <a type="button" href="{% url 'choicequestEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'questschoiceDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% elif type == "achievements" %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.lesson_id.lessons_name }}</td>
+                    <td>{{ foo.achieve_name }}</td>
+                    <td>{{ foo.achieve_description }}</td>
+                    {% if foo.achieve_photo == "Документ не найден." %}
+                        <td><p style="color: red;">Файл не найден. </p></td>
+                    {% else %}
+                            <td><a href="{{ foo.achieve_photo.url }}">{{ foo.achieve_photo.url|truncatechars:40  }}</a></td>
+                    {% endif %}
+                    <td>
+                        <a type="button" href="{% url 'achievementsEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'achievementsDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
                     </td>
                 </tr>
                 {% endif %}

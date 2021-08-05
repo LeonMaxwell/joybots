@@ -52,6 +52,7 @@ class Modules(models.Model):
     module_name = models.CharField(max_length=256, verbose_name="Имя модуля", unique=True)
     module_description = models.TextField(blank=True, null=True, verbose_name="Описание модуля")
     module_photo = models.ImageField(upload_to=get_upload_path, default=True, verbose_name="Фото модуля")
+    module_video = models.FileField(upload_to=get_upload_path, blank=True, verbose_name="Видео модуля")
     data_create_module = models.DateTimeField(auto_now=True, verbose_name="Дата создания модуля")
 
     class Meta:
@@ -69,10 +70,16 @@ class Lessons(models.Model):
         (2, "Для всех"),
     )
 
+    VERSION_LES = (
+        (0, "Краткая версия"),
+        (1, "Полная версия"),
+    )
+
     id_modules = models.ForeignKey(Modules, related_name="lessonsformoule", on_delete=models.CASCADE, verbose_name="ID модуля")
     lessons_name = models.CharField(max_length=256, verbose_name="Название урока")
     lessons_description = models.TextField(blank=True, null=True, verbose_name="Описание урока")
     is_parent = models.IntegerField(choices=PARENTS, null=True, verbose_name="Тип урока")
+    is_short = models.IntegerField(choices=VERSION_LES, null=True, verbose_name="Версия урока")
     data_create_lessons = models.DateTimeField(auto_now=True, verbose_name="Дата создания урока")
 
     class Meta:
@@ -156,6 +163,20 @@ class QuestChoices(models.Model):
 
     def __str__(self):
         return "Выбор {}({}) - для квеста {}".format(self.choice_name, self.is_True, self.quest_id.quest_name)
+
+
+class Achievements(models.Model):
+    lesson_id = models.ForeignKey(Lessons, on_delete=models.CASCADE, verbose_name="ID урока")
+    achieve_name = models.CharField(max_length=255, verbose_name="Название ачивки")
+    achieve_description = models.TextField(blank=True, null=True, verbose_name="Описание ачивки")
+    achieve_photo = models.ImageField(upload_to=get_upload_path, default=True, verbose_name="Фото ачивки")
+
+    class Meta:
+        verbose_name = "Ачивки"
+        verbose_name_plural = "База ачивок"
+
+    def __str__(self):
+        return self.achieve_name
 
 
 class User(AbstractUser):
