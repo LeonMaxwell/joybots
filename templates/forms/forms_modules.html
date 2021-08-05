@@ -1,4 +1,4 @@
-    <form method="post"  enctype="multipart/form-data" action="{% url 'moduleCreate' name_parts="module"%}">
+    <form method="post"  enctype="multipart/form-data" action="{% url 'moduleCreate' name_parts="modules"%}">
         {% csrf_token %}
         {{ form.media }}
         {{ form.as_p }}

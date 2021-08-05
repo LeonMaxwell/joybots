@@ -1,0 +1,7 @@
+<form method="post"  enctype="multipart/form-data" action="{% url 'vocabularyCreated' name_parts="vocabulary" %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <label>
+            <input type="submit" value="Создать словарь"/>
+        </label>
+</form>

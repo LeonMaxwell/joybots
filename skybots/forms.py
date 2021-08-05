@@ -20,7 +20,7 @@ class LoginUserForms(forms.ModelForm):
 class CreateUserForms(forms.ModelForm):
     class Meta:
         model = User
-        fields = ('full_name', 'email', 'phone_number', 'user_role', 'subscribe')
+        fields = ('user_id', 'full_name', 'email', 'phone_number', 'user_role', 'subscribe')
 
     subscribe = forms.DateTimeField(widget=forms.DateInput(attrs={'type': 'date'}))
 
@@ -60,18 +60,35 @@ class CreateMessageLessonsForms(forms.ModelForm):
 
     id_lessons = forms.ModelChoiceField(queryset=Lessons.objects.all(), label="ID урока")
     type_value = forms.ChoiceField(choices=MESSAGE_TYPE, label="Тип сообщения")
-    message_caption = forms.CharField(max_length=512, label="Подпись сообщения")
+    message_caption = forms.CharField(max_length=512, widget=forms.Textarea, label="Подпись сообщения",required = False)
     message_photos = forms.FileField(label="Медиа-контент сообщения",required = False)
-    message_value = forms.CharField(max_length=512, widget=forms.Textarea, label="Значение сообщения",required = False)
+
+
+class CreateVocabularyForms(forms.ModelForm):
+    MESSAGE_TYPE = (
+        ("text", "Текст"),
+        ("photo", "Фото"),
+        ("video", "Видео"),
+        ("doc", "Документ"),
+    )
+
+    class Meta:
+        model = Vocabulary
+        fields = ('id_lessons','type_value', 'message_photos', 'message_caption')
+
+    id_lessons = forms.ModelChoiceField(queryset=Lessons.objects.all(), label="ID урока")
+    type_value = forms.ChoiceField(choices=MESSAGE_TYPE, label="Тип сообщения")
+    message_caption = forms.CharField(max_length=512, widget=forms.Textarea, label="Подпись сообщения",required = False)
+    message_photos = forms.FileField(label="Медиа-контент сообщения",required = False)
 
 
 class CreateQuestForms(forms.ModelForm):
     class Meta:
         model = Quest
-        fields = ('id_lessons', 'id_modules', 'quest_name', 'quest_description')
+        fields = ('id_modules', 'id_lessons', 'quest_name', 'is_hard', 'quest_description')
 
-    id_lessons = forms.ModelChoiceField(queryset=Lessons.objects.all(), label="ID урока")
     id_modules = forms.ModelChoiceField(queryset=Modules.objects.all(), label="ID модуля")
+    id_lessons = forms.ModelChoiceField(queryset=Lessons.objects.all(), label="ID урока")
     quest_name = forms.CharField(max_length=256, label="Название квеста")
     quest_description = forms.CharField(widget=forms.Textarea, label="Описание квеста")
 
@@ -83,15 +100,15 @@ class CreateMessageForQuestForms(forms.ModelForm):
         ("video", "Видео"),
         ("doc", "Документ"),
     )
+
     class Meta:
         model = QuestMessage
-        fields = ('quest_id', 'type_value', 'message_photos', 'message_value', 'message_caption')
+        fields = ('quest_id', 'type_value', 'message_photos', 'message_caption')
 
     quest_id = forms.ModelChoiceField(queryset=Quest.objects.all(), label="ID квеста")
     type_value = forms.ChoiceField(choices=MESSAGE_TYPE, label="Тип сообщения")
     message_photos = forms.FileField(label="Медиа-контент сообщения",required = False)
-    message_caption = forms.CharField(max_length=512, label="Подпись сообщения")
-    message_value = forms.CharField(max_length=512, widget=forms.Textarea, label="Значение сообщения",required = False)
+    message_caption = forms.CharField(max_length=512,  widget=forms.Textarea, required = False, label="Подпись сообщения")
 
 
 class CreateChoiceForQuestForms(forms.ModelForm):
@@ -99,12 +116,13 @@ class CreateChoiceForQuestForms(forms.ModelForm):
         ('true', "Верно"),
         ("false", "Неверно"),
     )
+
     class Meta:
         model = QuestChoices
         fields = ('quest_id', 'choice_name', 'is_True', 'сhoice_description')
     quest_id = forms.ModelChoiceField(queryset=Quest.objects.all(), label="ID квеста")
     choice_name = forms.CharField(max_length=256, label="Имя выбора")
-    is_true = forms.ChoiceField(choices=TRUE_CHOICE, label="Верность выбора")
+    is_True = forms.ChoiceField(choices=TRUE_CHOICE, label="Верность выбора")
     сhoice_description = forms.CharField(max_length=512, label="Описание выбора")
 
 

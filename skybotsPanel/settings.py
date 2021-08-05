@@ -88,14 +88,14 @@ DATABASES = {
 
 # MySQL connector
 
-# db_confg = {
+#db_confg = {
 #     "mysql":{
-#         "host": "",
-#         "db_name": "",
-#         "user": "",
-#         "pass": ""
-#     }
-# }
+#         "host": "80.211.108.190",
+#         "db_name": "kbk_group",
+#         "user": "root",
+#        "pass": "Kukrinix"
+#   }
+#}
 
 
 
