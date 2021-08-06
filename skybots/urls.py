@@ -21,6 +21,7 @@ urlpatterns = [
     path('<str:name_parts>/<int:pk>/editquestmsg/', views.questmsgEdit, name="questmsgEdit"),
     path('<str:name_parts>/<int:pk>/editchoicequest/', views.choicequestEdit, name="choicequestEdit"),
     path('<str:name_parts>/<int:pk>/editachievements/', views.achievementsEdit, name="achievementsEdit"),
+    path('<str:name_parts>/<int:pk>/editbuttons/', views.buttonsEdit, name="buttonsEdit"),
     path('<str:name_parts>/<int:pk>/deleteuser/', views.userDelete, name="deleteUser"),
     path('<str:name_parts>/<int:pk>/deletethemes/', views.themesDelete, name="deleteThemes"),
     path('<str:name_parts>/<int:pk>/deletemodule/', views.moduleDelete, name="moduleDelete"),
@@ -31,6 +32,7 @@ urlpatterns = [
     path('<str:name_parts>/<int:pk>/deletelesquestmsg/', views.questsmsgDelete, name="questsmsgDelete"),
     path('<str:name_parts>/<int:pk>/deletelesquestchoice/', views.questschoiceDelete, name="questschoiceDelete"),
     path('<str:name_parts>/<int:pk>/deleteleachievements/', views.achievementsDelete, name="achievementsDelete"),
+    path('<str:name_parts>/<int:pk>/deletelebuttons/', views.buttonsDelete, name="buttonsDelete"),
     path('<str:name_parts>/add/', CreateModels.as_view(), name="parts_add"),
     path('<str:name_parts>/add/done', views.DoneCreate, name="donecreate"),
     path('<str:name_parts>/add/donethemes', views.ThemesCreate, name="themesCreate"),
@@ -42,5 +44,6 @@ urlpatterns = [
     path('<str:name_parts>/add/donequestmsg', views.questMsg, name="questmsgCreated"),
     path('<str:name_parts>/add/donequestchoice', views.qestchoiceCreated, name="questChoiceCreated"),
     path('<str:name_parts>/add/doneachievements', views.achievementsCreated, name="achievementsCreated"),
+    path('<str:name_parts>/add/donebuttons', views.buttonsCreated, name="buttonsCreated"),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

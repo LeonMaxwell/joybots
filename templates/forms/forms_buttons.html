@@ -1,0 +1,70 @@
+    <form method="post"  enctype="multipart/form-data" action="{% url 'buttonsCreated' name_parts="buttons"%}">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <label>
+            <input type="submit" value="Создать кнопку">
+        </label>
+    </form>
+
+
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script>
+        $('#id_message_id').empty()
+        $('#id_lessons_id').empty()
+        $('#id_achieve_id').empty()
+
+          $("#id_module_id").change(function () {
+              $('#id_lessons_id').empty()
+              $('#id_message_id').empty()
+              $('#id_achieve_id').empty()
+              let cur_les = $('#id_module_id option:selected').text()
+              let all_name_les = []
+              let all_les = []
+              {% for foo in lessons_mod %}
+                  all_name_les.push('{{ foo.id_modules.module_name }}')
+                  all_les.push('{{ foo }}')
+              {% endfor %}
+              $('#id_lessons_id').append('<option value=" ">--Select--</option> ')
+              all_name_les.forEach(function (item, i, array) {
+                  if (item === cur_les){
+                    $('#id_lessons_id').append('<option>' + all_les[i] + '</option>');
+                  }
+              });
+          });
+
+          $("#id_lessons_id").change(function () {
+              $('#id_message_id').empty()
+              $('#id_achieve_id').empty()
+              let cur_les = $('#id_lessons_id option:selected').text()
+              let all_name_les_for_message = []
+              let all_name_les_for_achiv = []
+              let all_les_formes = []
+              let all_les_forachiv = []
+
+              {% for foo in other %}
+                  all_name_les_for_message.push('{{ foo.id_lessons.lessons_name }}')
+                  all_les_formes.push('{{ foo.id }}')
+              {% endfor %}
+
+              {% for foo in achivments_mod %}
+                  all_name_les_for_achiv.push('{{ foo.lesson_id.lessons_name }}')
+                  all_les_forachiv.push('{{ foo }}')
+              {% endfor %}
+              $('#id_message_id').append('<option value=" ">--Select--</option> ')
+              $('#id_achieve_id').append('<option value=" ">--Select--</option> ')
+              all_name_les_for_message.forEach(function (item, i, array) {
+                  if (item === cur_les){
+                    $('#id_message_id').append('<option>' +  all_les_formes[i] + '</option>');
+                  }
+              });
+
+              all_name_les_for_achiv.forEach(function (item, i, array) {
+                  if (item === cur_les){
+                    $('#id_achieve_id').append('<option>' + all_les_forachiv[i] + '</option>');
+                  }
+              });
+          });
+
+  </script>
+    </script>

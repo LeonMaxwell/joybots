@@ -130,5 +130,10 @@ class CreateAchievementsForms(forms.ModelForm):
     class Meta:
         model = Achievements
         fields = ('lesson_id', 'achieve_name', 'achieve_description', 'achieve_photo')
-
     lesson_id = forms.ModelChoiceField(queryset=Lessons.objects.all(), label="ID урока")
+
+
+class CreateInteractiveButtonsForms(forms.ModelForm):
+    class Meta:
+        model = InteractiveButtons
+        fields = ('module_id', 'lessons_id', 'button_name', 'message_id', 'achieve_id')

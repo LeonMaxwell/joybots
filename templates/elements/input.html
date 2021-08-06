@@ -67,7 +67,16 @@
                         <th>ID урока</th>
                         <th>Имя ачивки</th>
                         <th>Описание ачивки</th>
-                        <th>Описание ачивки</th>
+                        <th>Фото ачивки</th>
+                    {% elif type == "buttons" %}
+                        <th>ID</th>
+                        <th>ID модуля</th>
+                        <th>ID урока</th>
+                        <th>Название кнопки</th>
+                        <th>Выбранное сообщение</th>
+                        <th>Подпись сообщения</th>
+                        <th>Контент сообщения</th>
+                        <th>Выбранная ачивка</th>
                     {% endif %}
                 </thead>
             {% for foo in date %}
@@ -235,6 +244,25 @@
                     <td>
                         <a type="button" href="{% url 'achievementsEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
                         <a type="button" href="{% url 'achievementsDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
+                    </td>
+                </tr>
+                {% elif type == "buttons" %}
+                <tr>
+                    <th scope="row">{{ foo.pk }}</th>
+                    <td>{{ foo.module_id.module_name }}</td>
+                    <td>{{ foo.lessons_id.lessons_name }}</td>
+                    <td>{{ foo.button_name }}</td>
+                    <td>{{ foo.message_id.id_AllMessages }}</td>
+                    <td>{{ foo.message_id.id_AllMessages.message_caption }}</td>
+                    {% if foo.message_id.id_AllMessages.message_photos == "Документ не найден." %}
+                        <td><p style="color: red;">Файл не найден. </p></td>
+                    {% else %}
+                            <td><a href="{{ foo.message_id.id_AllMessages.message_photos.url }}">{{ foo.message_id.id_AllMessages.message_photos.url|truncatechars:40  }}</a></td>
+                    {% endif %}
+                    <td>{{ foo.achieve_id.achieve_name }}</td>
+                    <td>
+                        <a type="button" href="{% url 'buttonsEdit' name_parts=type pk=foo.pk  %}" id="{{ foo.pk }} edit" class="btn btn-success">Изменить</a>
+                        <a type="button" href="{% url 'buttonsDelete' name_parts=type pk=foo.pk %}" id="{{ foo.pk }} remove" class="btn btn-danger">Удалить</a>
                     </td>
                 </tr>
                 {% endif %}

@@ -55,6 +55,7 @@ class LoginUser(FormView):
         lessons = Lessons.objects.all()
         lessonsData = LessonsMessage.objects.all()
         achievements = Achievements.objects.all()
+        interactiveButtons = InteractiveButtons.objects.all()
         user_is = request.user
         if user_is.is_authenticated:
             return render(request, 'index.html', {"it_user": user_is,
@@ -63,6 +64,7 @@ class LoginUser(FormView):
                                                   'vocabularyData':vocabularyData,
                                                   "allMessagesData": allMessagesData,
                                                   "modulesData": modulesData,
+                                                  "buttons":interactiveButtons,
                                                   "quest": quest,
                                                   "questData": questData,
                                                   "lessons": lessons,
@@ -113,6 +115,8 @@ class PartsView(CreateView):
             data_for_table = QuestChoices.objects.all()
         elif type_cont == 'achievements':
             data_for_table = Achievements.objects.all()
+        elif type_cont == 'buttons':
+            data_for_table = InteractiveButtons.objects.all()
         user_is = request.user
         return render(request, 'elements/input.html', {
             "type": type_cont,
@@ -129,6 +133,9 @@ class CreateModels(CreateView):
     def get(self, request, *args, **kwargs):
         type_cont = kwargs['name_parts']
         user_is = request.user
+        other_models = None
+        lessons_models = None
+        achivments_models = None
         if type_cont == 'users':
             self.form_class = CreateUserForms
             self.model = User
@@ -169,7 +176,22 @@ class CreateModels(CreateView):
             self.form_class = CreateAchievementsForms
             self.model = Achievements
             self.template_name = 'forms/forms_achievements.html'
-        return render(request, self.template_name, {"model": self.model, 'form': self.form_class, "it_user": user_is})
+        elif type_cont == 'buttons':
+            self.form_class = CreateInteractiveButtonsForms
+            self.model = InteractiveButtons
+            other_models = LessonsMessage.objects.all()
+            lessons_models = Lessons.objects.all()
+            achivments_models = Achievements.objects.all()
+            self.template_name = 'forms/forms_buttons.html'
+        return render(request, self.template_name,
+                      {
+                          "model": self.model,
+                          'other':other_models,
+                          'lessons_mod': lessons_models,
+                          'achivments_mod': achivments_models,
+                          'form': self.form_class,
+                          "it_user": user_is
+                      })
 
 
 class EditModels(CreateView):
@@ -219,6 +241,10 @@ class EditModels(CreateView):
             self.model = QuestChoices
             self.form_class = CreateChoiceForQuestForms(instance=self.model.objects.get(id=pk_cont))
             self.template_name = 'forms/form_questchoice.html'
+        elif type_cont == 'buttons':
+            self.model = InteractiveButtons
+            self.form_class = CreateInteractiveButtonsForms(instance=self.model.objects.get(id=pk_cont))
+            self.template_name = 'forms/forms_buttons.html'
         return render(request, self.template_name, {'form': self.form_class, 'pk': pk_cont, "it_user": user_is,
                                                     "model": self.model})
 
@@ -460,6 +486,30 @@ def achievementsDelete(request, name_parts, pk):
             "it_user": user_is,
             "date": data_for_table, })
     except Achievements.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+
+def buttonsDelete(request, name_parts, pk):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = InteractiveButtons.objects.all()
+    try:
+        model = InteractiveButtons.objects.get(id=pk)
+        # userDelete_pk = '{}'.format(pk)
+        # insert_quesy_to_table = '''
+        # delete from quests_choices where choice_id='{}';''' \
+        #    .format(userDelete_pk)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        model.delete()
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+    except InteractiveButtons.DoesNotExist:
         return render(request, 'elements/input.html', {
             "type": type_cont,
             "it_user": user_is,
@@ -940,6 +990,67 @@ def achievementsEdit(request, name_parts, pk):
             "date": data_for_table})
 
 
+def buttonsEdit(request, name_parts, pk):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = InteractiveButtons.objects.all()
+    try:
+        user = InteractiveButtons.objects.get(id=pk)
+        form = CreateInteractiveButtonsForms(instance=user)
+        other_models = LessonsMessage.objects.all()
+        lessons_models = Lessons.objects.all()
+        achivments_models = Achievements.objects.all()
+
+        if request.method == "POST":
+            user.module_id_id = request.POST.get('module_id')
+            user_module_id_id = '{}'.format(request.POST.get('module_id'))
+            user.lessons_id_id = str(Lessons.objects.get(lessons_name=request.POST.get("lessons_id")).pk)
+            user_lessons_id_id = '{}'.format(str(Lessons.objects.get(lessons_name=request.POST.get("lessons_id")).pk))
+            user.button_name = request.POST.get("button_name")
+            user_button_name = '{}'.format(request.POST.get("button_name"))
+            if request.POST.get("message_id") != ' ':
+                user.message_id_id = request.POST.get("message_id")
+                user_message_id_id = '{}'.format(request.POST.get("message_id"))
+            else:
+                user.message_id_id = None
+                user_message_id_id = "Не выбрано"
+            if request.POST.get("achieve_id") != ' ':
+                user.achieve_id_id = str(Achievements.objects.get(achieve_name=request.POST.get("achieve_id")).id)
+                user_achieve_id_id = '{}'.format(
+                    str(Achievements.objects.get(achieve_name=request.POST.get("achieve_id")).id))
+            else:
+                user.achieve_id_id = None
+            if (request.POST.get("message_id") != ' ') and (request.POST.get("achieve_id") != ' '):
+                user.achieve_id_id = user.message_id_id = None
+            # insert_quesy_to_table = '''
+            # insert into quests (module_id, lesson_id, quest_name, quest_description)
+            # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
+            #                                           user_quest_description)
+            # cursor.execute(insert_quesy_to_table)
+            # conn.commit()
+            user.save()
+            return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table, })
+        else:
+            return render(request, 'forms/forms_buttons_edit.html',
+                          {"pk": pk,
+                           "object": user,
+                           'form': form,
+                           "it_user": user_is,
+                           'other': other_models,
+                           'lessons_mod': lessons_models,
+                           'achivments_mod': achivments_models,
+                           })
+    except InteractiveButtons.DoesNotExist:
+        return render(request, 'elements/input.html', {
+            "type": type_cont,
+            "it_user": user_is,
+            "date": data_for_table})
+
+
 def DoneCreate(request, name_parts):
     user_is = request.user
     # cursor = conn.cursor()
@@ -1259,6 +1370,45 @@ def achievementsCreated(request, name_parts):
             user.achieve_photo = request.FILES.get("achieve_photo")
         else:
             user.achieve_photo = "Документ не найден."
+        # insert_quesy_to_table = '''
+        # insert into quests (module_id, lesson_id, quest_name, quest_description)
+        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
+        #                                           user_quest_description)
+        # cursor.execute(insert_quesy_to_table)
+        # conn.commit()
+        user.save()
+    return render(request, 'elements/input.html', {
+        "type": type_cont,
+        "it_user": user_is,
+        "date": data_for_table, })
+
+
+def buttonsCreated(request, name_parts):
+    # cursor = conn.cursor()
+    user_is = request.user
+    type_cont = name_parts
+    data_for_table = InteractiveButtons.objects.all()
+    if request.method == "POST":
+        user = InteractiveButtons()
+        user.module_id_id = request.POST.get('module_id')
+        user_module_id_id = '{}'.format(request.POST.get('module_id'))
+        user.lessons_id_id = str(Lessons.objects.get(lessons_name=request.POST.get("lessons_id")).pk)
+        user_lessons_id_id = '{}'.format(str(Lessons.objects.get(lessons_name=request.POST.get("lessons_id")).pk))
+        user.button_name = request.POST.get("button_name")
+        user_button_name = '{}'.format(request.POST.get("button_name"))
+        if request.POST.get("message_id") != ' ':
+            user.message_id_id = request.POST.get("message_id")
+            user_message_id_id = '{}'.format(request.POST.get("message_id"))
+        else:
+            user.message_id_id = None
+            user_message_id_id = "Не выбрано"
+        if request.POST.get("achieve_id") != ' ':
+            user.achieve_id_id = str(Achievements.objects.get(achieve_name=request.POST.get("achieve_id")).id)
+            user_achieve_id_id = '{}'.format(str(Achievements.objects.get(achieve_name=request.POST.get("achieve_id")).id))
+        else:
+            user.achieve_id_id = None
+        if (request.POST.get("message_id") != ' ')  and (request.POST.get("achieve_id") != ' '):
+            user.achieve_id_id = user.message_id_id = None
         # insert_quesy_to_table = '''
         # insert into quests (module_id, lesson_id, quest_name, quest_description)
         # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,

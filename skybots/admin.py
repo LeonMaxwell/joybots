@@ -4,6 +4,8 @@ from .models import *
 # Register your models here.
 admin.site.register(AllMessage)
 admin.site.register(Modules)
+admin.site.register(Achievements)
+admin.site.register(InteractiveButtons)
 admin.site.register(Lessons)
 admin.site.register(LessonsMessage)
 admin.site.register(Quest)

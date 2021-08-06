@@ -37,7 +37,7 @@ class AllMessage(models.Model):
 
 
 class Themes(models.Model):
-    themes_names = models.CharField(max_length=256, verbose_name="Имя темы", unique=True)
+    themes_names = models.CharField(max_length=256, verbose_name="Имя темы")
 
     class Meta:
         verbose_name = "Тема"
@@ -49,7 +49,7 @@ class Themes(models.Model):
 
 class Modules(models.Model):
     themes_id = models.ForeignKey(Themes, on_delete=models.CASCADE, default=True, null=True, verbose_name="ID темы")
-    module_name = models.CharField(max_length=256, verbose_name="Имя модуля", unique=True)
+    module_name = models.CharField(max_length=256, verbose_name="Имя модуля")
     module_description = models.TextField(blank=True, null=True, verbose_name="Описание модуля")
     module_photo = models.ImageField(upload_to=get_upload_path, default=True, verbose_name="Фото модуля")
     module_video = models.FileField(upload_to=get_upload_path, blank=True, verbose_name="Видео модуля")
@@ -75,7 +75,7 @@ class Lessons(models.Model):
         (1, "Полная версия"),
     )
 
-    id_modules = models.ForeignKey(Modules, related_name="lessonsformoule", on_delete=models.CASCADE, verbose_name="ID модуля")
+    id_modules = models.ForeignKey(Modules, on_delete=models.CASCADE, verbose_name="ID модуля")
     lessons_name = models.CharField(max_length=256, verbose_name="Название урока")
     lessons_description = models.TextField(blank=True, null=True, verbose_name="Описание урока")
     is_parent = models.IntegerField(choices=PARENTS, null=True, verbose_name="Тип урока")
@@ -91,7 +91,7 @@ class Lessons(models.Model):
 
 
 class LessonsMessage(models.Model):
-    id_lessons = models.ForeignKey(Lessons, on_delete=models.CASCADE, verbose_name="ID урока")
+    id_lessons = models.ForeignKey(Lessons, related_name="lessonsmsgforlessons", on_delete=models.CASCADE, verbose_name="ID урока")
     id_AllMessages = models.ForeignKey(AllMessage, on_delete=models.CASCADE, verbose_name="ID сообщения")
 
     class Meta:
@@ -154,7 +154,7 @@ class QuestChoices(models.Model):
 
     quest_id = models.ForeignKey(Quest, on_delete=models.CASCADE, verbose_name="ID квеста")
     choice_name = models.CharField(max_length=128, verbose_name="Названия выбора")
-    сhoice_description = models.CharField(max_length=512, blank=True, null=True, verbose_name="Описание выбора ответа")
+    сhoice_description = models.CharField(max_length=1024, blank=True, null=True, verbose_name="Описание выбора ответа")
     is_True = models.CharField(max_length=255, choices=TRUE_CHOICE,  null=True, verbose_name="Правильность выбора")
 
     class Meta:
@@ -166,7 +166,7 @@ class QuestChoices(models.Model):
 
 
 class Achievements(models.Model):
-    lesson_id = models.ForeignKey(Lessons, on_delete=models.CASCADE, verbose_name="ID урока")
+    lesson_id = models.ForeignKey(Lessons, related_name="achiveforlessons", on_delete=models.CASCADE, verbose_name="ID урока")
     achieve_name = models.CharField(max_length=255, verbose_name="Название ачивки")
     achieve_description = models.TextField(blank=True, null=True, verbose_name="Описание ачивки")
     achieve_photo = models.ImageField(upload_to=get_upload_path, default=True, verbose_name="Фото ачивки")
@@ -177,6 +177,22 @@ class Achievements(models.Model):
 
     def __str__(self):
         return self.achieve_name
+
+
+class InteractiveButtons(models.Model):
+    module_id = models.ForeignKey(Modules, on_delete=models.CASCADE, null=True, verbose_name="ID модуля")
+    lessons_id = models.ForeignKey(Lessons, on_delete=models.CASCADE, null=True, verbose_name="ID урока")
+    button_name = models.CharField(max_length=255, verbose_name="Название кнопки")
+    message_id = models.ForeignKey(LessonsMessage, related_name="forbutton", on_delete=models.CASCADE, blank=True,
+                                   null=True, verbose_name="ID сообщения")
+    achieve_id = models.ForeignKey(Achievements, on_delete=models.CASCADE, blank=True, null=True, verbose_name="ID ачивки")
+
+    class Meta:
+        verbose_name = "Кнопки"
+        verbose_name_plural = "База кнопок"
+
+    def __str__(self):
+        return self.button_name
 
 
 class User(AbstractUser):
