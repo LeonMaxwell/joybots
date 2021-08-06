@@ -13,32 +13,32 @@ from .forms import LoginUserForms
 from .models import *
 
 
-# from skybotsPanel.settings import connection
-# import mysql.connector
-# from mysql.connector import Error
-# from skybotsPanel.settings import db_confg
-#
-#
-# def create_connection_mysql_db(db_host, db_name, user_name, user_password):
-#     connection_db = None
-#     try:
-#         connection_db = mysql.connector.connect(
-#             host=db_host,
-#             user=user_name,
-#             password=user_password,
-#             database=db_name,
-#         )
-#         print("Пдключение к MySQL успешно выполнено")
-#     except Error as db_connection_error:
-#         print("Возникла ошибка: ", db_connection_error)
-#     return connection_db
-#
-#
-# conn = create_connection_mysql_db(db_confg["mysql"]["host"],
-#                                   db_confg["mysql"]["db_name"],
-#                                   db_confg["mysql"]["user"],
-#                                   db_confg["mysql"]["pass"])
-#
+#from skybotsPanel.settings import connection
+import mysql.connector
+from mysql.connector import Error
+from skybotsPanel.settings import db_confg
+
+
+def create_connection_mysql_db(db_host, db_name, user_name, user_password):
+    connection_db = None
+    try:
+        connection_db = mysql.connector.connect(
+            host=db_host,
+            user=user_name,
+            password=user_password,
+            database=db_name,
+        )
+        print("Пдключение к MySQL успешно выполнено")
+    except Error as db_connection_error:
+        print("Возникла ошибка: ", db_connection_error)
+    return connection_db
+
+
+conn = create_connection_mysql_db(db_confg["mysql"]["host"],
+                                db_confg["mysql"]["db_name"],
+                                db_confg["mysql"]["user"],
+                                db_confg["mysql"]["pass"])
+
 
 class LoginUser(FormView):
     template_name = "elements/login.html"
@@ -1053,7 +1053,7 @@ def buttonsEdit(request, name_parts, pk):
 
 def DoneCreate(request, name_parts):
     user_is = request.user
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     type_cont = name_parts
     data_for_table = User.objects.all()
 
@@ -1073,13 +1073,13 @@ def DoneCreate(request, name_parts):
         user_user_role = '{}'.format(request.POST.get("user_role"))
         data_reg = '{}'.format(datetime.datetime.now())
         last_pk = User.objects.all().last().pk + 1
-        # insert_quesy_to_table = '''
-        # insert into users (date_reg, first_name, last_name, full_name, phone_number, user_email, is_confirm,
-        #                 user_role, subscribe, is_live)
-        # values ('{}', '', '', '{}', '{}', '{}', 0, '{}', '{}', 0);'''.format(data_reg, user_full_name,
-        # user_phone_number, user_email, user_subscribe, user_user_role)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into users (date_reg, first_name, last_name, full_name, phone_number, user_email, is_confirm,
+                        user_role, subscribe, is_live, user_id)
+        values ('{}', '', '', '{}', '{}', '{}', 0, '{}', '{}', 0, '{}');'''.format(data_reg, user_full_name,
+        user_phone_number, user_email, user_subscribe, user_user_role, user_id)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
@@ -1089,13 +1089,18 @@ def DoneCreate(request, name_parts):
 
 def ThemesCreate(request, name_parts):
     user_is = request.user
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     type_cont = name_parts
     data_for_table = Themes.objects.all()
     if request.method == "POST":
         user = Themes()
         user.themes_names = request.POST.get('themes_names')
         user_themes_names = '{}'.format(request.POST.get('themes_names'))
+        insert_quesy_to_table = '''
+        insert into themes (theme_name)
+        values ('{}');'''.format(user_themes_names)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
@@ -1105,7 +1110,7 @@ def ThemesCreate(request, name_parts):
 
 def ModuleCreate(request, name_parts):
     user_is = request.user
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     type_cont = name_parts
     data_for_table = Modules.objects.all()
     if request.method == "POST":
@@ -1128,11 +1133,11 @@ def ModuleCreate(request, name_parts):
         else:
             user.module_video = "Файл не найден"
             user_module_video = 'Файл не найден'
-        # insert_quesy_to_table = '''
-        # insert into modules (module_name, module_description, module_photo)
-        # values ('{}', '{}', '{}');'''.format(user_module_name, user_description_module, user_module_photo)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into modules (theme_id, module_name, module_description, module_photo)
+        values ('{}', '{}', '{}', '{}');'''.format(user_themes_id_id, user_module_name, user_description_module, user_module_photo)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
@@ -1142,7 +1147,7 @@ def ModuleCreate(request, name_parts):
 
 def LessonsCreated(request, name_parts):
     user_is = request.user
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     type_cont = name_parts
     data_for_table = Lessons.objects.all()
     if request.method == "POST":
@@ -1157,12 +1162,12 @@ def LessonsCreated(request, name_parts):
         user_is_parent = '{}'.format(request.POST.get('is_parent'))
         user.is_short = request.POST.get("is_short")
         user_is_short = '{}'.format(request.POST.get('is_short'))
-        # insert_quesy_to_table = '''
-        # insert into lessons (module_id, lesson_name, lesson_description, is_parent)
-        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_lessons_name, user_lessons_description,
-        #                                           user_is_parent)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into lessons (module_id, lesson_name, lesson_description, is_parent, is_short)
+        values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_lessons_name, user_lessons_description,
+                                                  user_is_parent, user_is_short)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
@@ -1171,7 +1176,7 @@ def LessonsCreated(request, name_parts):
 
 
 def LessonsmsgCreated(request, name_parts):
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     user_is = request.user
     type_cont = name_parts
     data_for_table = LessonsMessage.objects.all()
@@ -1193,17 +1198,17 @@ def LessonsmsgCreated(request, name_parts):
         user.id_AllMessages_id = allMessages.id
         moduleEdit_message_value = '{}'.format(message_photos)
         user_id_AllMessages_id = '{}'.format(allMessages.id)
-        # insert_quesy_to_table = '''
-        # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
-        # '''.format(user_type_value, user_message_value, user_message_caption)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
-        # insert_quesy_to_table = '''
-        # insert into lessons_messages(lesson_id, message_id)
-        # values ('{}', '{}');
-        # '''.format(user_id_lessons_id, user_id_AllMessages_id)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
+        '''.format(user_type_value,user_message_caption, message_photos)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
+        insert_quesy_to_table = '''
+        insert into lessons_messages(lesson_id, message_id)
+        values ('{}', '{}');
+        '''.format(user_id_lessons_id, user_id_AllMessages_id)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
         return render(request, 'elements/input.html', {
             "type": type_cont,
@@ -1212,7 +1217,7 @@ def LessonsmsgCreated(request, name_parts):
 
 
 def VocabularyCreated(request, name_parts):
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     user_is = request.user
     type_cont = name_parts
     data_for_table = Vocabulary.objects.all()
@@ -1234,17 +1239,17 @@ def VocabularyCreated(request, name_parts):
         user.message_id_id = allMessages.id
         moduleEdit_message_value = '{}'.format(message_photos)
         user_id_AllMessages_id = '{}'.format(allMessages.id)
-        # insert_quesy_to_table = '''
-        # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
-        # '''.format(user_type_value, user_message_value, user_message_caption)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
-        # insert_quesy_to_table = '''
-        # insert into vocabulary(lesson_id, message_id)
-        # values ('{}', '{}');
-        # '''.format(user_id_lessons_id, user_id_AllMessages_id)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
+        '''.format(user_type_value, user_message_caption, message_photos, )
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
+        insert_quesy_to_table = '''
+        insert into vocabulary(lesson_id, message_id)
+        values ('{}', '{}');
+        '''.format(user_id_lessons_id, user_id_AllMessages_id)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
         return render(request, 'elements/input.html', {
             "type": type_cont,
@@ -1253,7 +1258,7 @@ def VocabularyCreated(request, name_parts):
 
 
 def questCreated(request, name_parts):
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     user_is = request.user
     type_cont = name_parts
     data_for_table = Quest.objects.all()
@@ -1269,12 +1274,12 @@ def questCreated(request, name_parts):
         user_is_hard = '{}'.format(request.POST.get("is_hard"))
         user.quest_description = request.POST.get("quest_description")
         user_quest_description = '{}'.format(request.POST.get('quest_description'))
-        # insert_quesy_to_table = '''
-        # insert into quests (module_id, lesson_id, quest_name, quest_description)
-        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
-        #                                           user_quest_description)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into quests (module_id, lesson_id, quest_name, quest_description, is_hard)
+        values ('{}', '{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
+                                                  user_quest_description, user_is_hard)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
@@ -1283,7 +1288,7 @@ def questCreated(request, name_parts):
 
 
 def questMsg(request, name_parts):
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     user_is = request.user
     type_cont = name_parts
     data_for_table = QuestMessage.objects.all()
@@ -1307,17 +1312,17 @@ def questMsg(request, name_parts):
         user.id_AllMessages_id = allMessages.id
         moduleEdit_message_value = '{}'.format(request.FILES.get("message_photos"))
         user_id_AllMessages_id = '{}'.format(allMessages.id)
-        # insert_quesy_to_table = '''
-        # insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
-        # '''.format(user_type_value, user_message_value, user_message_caption)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
-        # insert_quesy_to_table = '''
-        # insert into quests_messages(quest_id, message_id)
-        # values ('{}', '{}');
-        # '''.format(user_quest_id_id, user_id_AllMessages_id)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into all_messages(message_type, message_caption, message_value) values ('{}', '{}', '{}');
+        '''.format(user_type_value, user_message_caption, user_message_photos )
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
+        insert_quesy_to_table = '''
+        insert into quests_messages(quest_id, message_id)
+        values ('{}', '{}');
+        '''.format(user_quest_id_id, user_id_AllMessages_id)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
@@ -1326,7 +1331,7 @@ def questMsg(request, name_parts):
 
 
 def qestchoiceCreated(request, name_parts):
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     user_is = request.user
     type_cont = name_parts
     data_for_table = QuestChoices.objects.all()
@@ -1340,12 +1345,12 @@ def qestchoiceCreated(request, name_parts):
         user_сhoice_description = '{}'.format(request.POST.get('сhoice_description'))
         user.is_True = request.POST.get("is_True")
         user_is_True = '{}'.format(request.POST.get("is_True"))
-        # insert_quesy_to_table = '''
-        # insert into quests_choices (quest_id, choice_name, choice_description, is_true)
-        # values ('{}', '{}', '{}', '{}');'''.format(user_quest_id_id, user_choice_name, user_сhoice_description,
-        #                                           user_is_True)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into quests_choices (quest_id, choice_name, choice_description, is_true)
+        values ('{}', '{}', '{}', '{}');'''.format(user_quest_id_id, user_choice_name, user_сhoice_description,
+                                                  user_is_True)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
@@ -1354,7 +1359,7 @@ def qestchoiceCreated(request, name_parts):
 
 
 def achievementsCreated(request, name_parts):
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     user_is = request.user
     type_cont = name_parts
     data_for_table = Achievements.objects.all()
@@ -1368,14 +1373,15 @@ def achievementsCreated(request, name_parts):
         user_achieve_description = '{}'.format(request.POST.get("achieve_description"))
         if request.FILES.get("achieve_photo"):
             user.achieve_photo = request.FILES.get("achieve_photo")
+            user_achieve_photo = '{}'.format(request.FILES.get("achieve_photo"))
         else:
             user.achieve_photo = "Документ не найден."
-        # insert_quesy_to_table = '''
-        # insert into quests (module_id, lesson_id, quest_name, quest_description)
-        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
-        #                                           user_quest_description)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+            user_achieve_photo = '{}'.format("Документ не найден.")
+        insert_quesy_to_table = '''
+        insert into achievements (achieve_name, achieve_description, achieve_photo)
+        values ('{}', '{}', '{}', '{}');'''.format(user_achieve_name, user_achieve_description, user_achieve_photo)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
@@ -1384,7 +1390,7 @@ def achievementsCreated(request, name_parts):
 
 
 def buttonsCreated(request, name_parts):
-    # cursor = conn.cursor()
+    cursor = conn.cursor()
     user_is = request.user
     type_cont = name_parts
     data_for_table = InteractiveButtons.objects.all()
@@ -1409,12 +1415,12 @@ def buttonsCreated(request, name_parts):
             user.achieve_id_id = None
         if (request.POST.get("message_id") != ' ')  and (request.POST.get("achieve_id") != ' '):
             user.achieve_id_id = user.message_id_id = None
-        # insert_quesy_to_table = '''
-        # insert into quests (module_id, lesson_id, quest_name, quest_description)
-        # values ('{}', '{}', '{}', '{}');'''.format(user_id_modules_id, user_id_lessons_id, user_quest_name,
-        #                                           user_quest_description)
-        # cursor.execute(insert_quesy_to_table)
-        # conn.commit()
+        insert_quesy_to_table = '''
+        insert into interactive_buttons (module_id, button_name, message_id, achieve_id)
+        values ('{}', '{}', '{}', '{}');'''.format(user_module_id_id, user_button_name, user_message_id_id,
+                                                   user_achieve_id_id)
+        cursor.execute(insert_quesy_to_table)
+        conn.commit()
         user.save()
     return render(request, 'elements/input.html', {
         "type": type_cont,
