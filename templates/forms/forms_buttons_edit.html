@@ -20,7 +20,7 @@
               let all_les = []
               {% for foo in lessons_mod %}
                   all_name_les.push('{{ foo.id_modules.module_name }}')
-                  all_les.push('{{ foo.id_AllMessages.message_caption }}')
+                  all_les.push('{{ foo.id }}')
               {% endfor %}
               $('#id_lessons_id').append('<option value=" ">--Select--</option> ')
               all_name_les.forEach(function (item, i, array) {

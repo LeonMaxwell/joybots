@@ -44,7 +44,7 @@
 
               {% for foo in other %}
                   all_name_les_for_message.push('{{ foo.id_lessons.lessons_name }}')
-                  all_les_formes.push('{{ foo.id_AllMessages.message_caption }}')
+                  all_les_formes.push('{{ foo.id }}')
               {% endfor %}
 
               {% for foo in achivments_mod %}

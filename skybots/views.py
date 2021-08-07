@@ -1015,10 +1015,8 @@ def buttonsEdit(request, name_parts, pk):
             user.button_name = request.POST.get("button_name")
             user_button_name = '{}'.format(request.POST.get("button_name"))
             if request.POST.get("message_id") != ' ':
-                user.message_id_id = str(
-                    LessonsMessage.objects.get(id_AllMessages__message_caption=request.POST.get("message_id")).pk)
-                user_message_id_id = '{}'.format(
-                    LessonsMessage.objects.get(id_AllMessages__message_caption=request.POST.get("message_id")).pk)
+                user.message_id_id = request.POST.get("message_id")
+                user_message_id_id = '{}'.format(request.POST.get("message_id"))
             else:
                 user.message_id_id = None
                 user_message_id_id = "Не выбрано"
@@ -1410,8 +1408,8 @@ def buttonsCreated(request, name_parts):
         user.button_name = request.POST.get("button_name")
         user_button_name = '{}'.format(request.POST.get("button_name"))
         if request.POST.get("message_id") != ' ':
-            user.message_id_id = str(LessonsMessage.objects.get(id_AllMessages__message_caption=request.POST.get("message_id")).pk)
-            user_message_id_id = '{}'.format(LessonsMessage.objects.get(id_AllMessages__message_caption=request.POST.get("message_id")).pk)
+            user.message_id_id = request.POST.get("message_id")
+            user_message_id_id = '{}'.format(request.POST.get("message_id"))
         else:
             user.message_id_id = None
             user_message_id_id = "Не выбрано"
