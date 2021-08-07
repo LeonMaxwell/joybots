@@ -1015,8 +1015,10 @@ def buttonsEdit(request, name_parts, pk):
             user.button_name = request.POST.get("button_name")
             user_button_name = '{}'.format(request.POST.get("button_name"))
             if request.POST.get("message_id") != ' ':
-                user.message_id_id = request.POST.get("message_id")
-                user_message_id_id = '{}'.format(request.POST.get("message_id"))
+                user.message_id_id = str(
+                    LessonsMessage.objects.get(id_AllMessages__message_caption=request.POST.get("message_id")).pk)
+                user_message_id_id = '{}'.format(
+                    LessonsMessage.objects.get(id_AllMessages__message_caption=request.POST.get("message_id")).pk)
             else:
                 user.message_id_id = None
                 user_message_id_id = "Не выбрано"
@@ -1408,8 +1410,8 @@ def buttonsCreated(request, name_parts):
         user.button_name = request.POST.get("button_name")
         user_button_name = '{}'.format(request.POST.get("button_name"))
         if request.POST.get("message_id") != ' ':
-            user.message_id_id = request.POST.get("message_id")
-            user_message_id_id = '{}'.format(request.POST.get("message_id"))
+            user.message_id_id = str(LessonsMessage.objects.get(id_AllMessages__message_caption=request.POST.get("message_id")).pk)
+            user_message_id_id = '{}'.format(LessonsMessage.objects.get(id_AllMessages__message_caption=request.POST.get("message_id")).pk)
         else:
             user.message_id_id = None
             user_message_id_id = "Не выбрано"
@@ -1448,7 +1450,8 @@ def exportToExcel(request):
     questsMessage = QuestMessage
     questsChoices = QuestChoices
     list_models = [
-        'users', 'modules', 'lessons', 'lessonsMessages', 'quests', 'questsMessage', 'questsChoices', 'allmessages', ]
+        'users', 'modules', 'lessons', 'lessonsMessages', 'quests', 'questsMessage', 'questsChoices', 'achievements',
+        'buttons', 'allmessages', ]
     response = HttpResponse(content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename="users.xls"'
     wb = xlwt.Workbook(encoding='utf-8')
@@ -1475,12 +1478,12 @@ def exportToExcel(request):
                     ws.write(row_num, col_num, row[col_num], font_style)
         elif models == "modules":
             columns = [
-                'module_name', 'module_description', 'module_photo', 'data_create_module', ]
+                'module_name', 'module_description', 'module_photo', 'module_video', ]
             for col_num in range(len(columns)):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
             rows = modules.objects.all().values_list('module_name', 'module_description', 'module_photo',
-                                                     'data_create_module', )
+                                                     'module_video', )
 
             rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
                     rows]
@@ -1494,7 +1497,7 @@ def exportToExcel(request):
             for col_num in range(len(columns)):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
-            rows = allmessages.objects.all().values_list('message_type', 'message_caption', 'message_value', )
+            rows = allmessages.objects.all().values_list('message_type', 'message_caption', 'message_photos', )
             rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
                     rows]
             for row in rows:
@@ -1503,12 +1506,12 @@ def exportToExcel(request):
                     ws.write(row_num, col_num, row[col_num], font_style)
         elif models == "lessons":
             columns = [
-                'id_modules', 'lessons_name', 'lessons_description', 'is_parent', 'data_create_lessons']
+                'id_modules', 'lessons_name', 'lessons_description', 'is_parent', 'is_short']
             for col_num in range(len(columns)):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
             rows = lessons.objects.all().values_list('id_modules', 'lessons_name', 'lessons_description',
-                                                     'data_create_lessons', )
+                                                     'is_short', )
             rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
                     rows]
             for row in rows:
@@ -1530,12 +1533,12 @@ def exportToExcel(request):
                     ws.write(row_num, col_num, row[col_num], font_style)
         elif models == "quests":
             columns = [
-                'id_modules', 'id_lessons', 'quest_name', 'quest_description', 'data_create_quest', ]
+                'id_modules', 'id_lessons', 'quest_name', 'quest_description', 'is_hard', ]
             for col_num in range(len(columns)):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
             rows = quests.objects.all().values_list('id_modules', 'id_lessons', 'quest_name', 'quest_description',
-                                                    'data_create_quest', )
+                                                    'is_hard', )
             rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
                     rows]
             for row in rows:
@@ -1562,6 +1565,32 @@ def exportToExcel(request):
                 ws.write(row_num, col_num, columns[col_num], font_style)
             font_style = xlwt.XFStyle()
             rows = questsChoices.objects.all().values_list('quest_id', 'choice_name', 'сhoice_description', 'is_True', )
+            rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
+                    rows]
+            for row in rows:
+                row_num += 1
+                for col_num in range(len(row)):
+                    ws.write(row_num, col_num, row[col_num], font_style)
+        elif models == "achievements":
+            columns = [
+                'achieve_name', 'achieve_description', 'achieve_photo']
+            for col_num in range(len(columns)):
+                ws.write(row_num, col_num, columns[col_num], font_style)
+            font_style = xlwt.XFStyle()
+            rows = Achievements.objects.all().values_list('achieve_name', 'achieve_description', 'achieve_photo', )
+            rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
+                    rows]
+            for row in rows:
+                row_num += 1
+                for col_num in range(len(row)):
+                    ws.write(row_num, col_num, row[col_num], font_style)
+        elif models == "buttons":
+            columns = [
+                'module_id', 'button_name', 'message_id', 'achieve_id']
+            for col_num in range(len(columns)):
+                ws.write(row_num, col_num, columns[col_num], font_style)
+            font_style = xlwt.XFStyle()
+            rows = InteractiveButtons.objects.all().values_list('module_id', 'button_name', 'message_id', 'achieve_id', )
             rows = [[x.strftime("%Y-%m-%d %H:%M") if isinstance(x, datetime.datetime) else x for x in row] for row in
                     rows]
             for row in rows:
