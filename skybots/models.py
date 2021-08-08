@@ -16,7 +16,7 @@ def get_upload_path(instance, filename):
     return 'original_image/{uuid}/{filename}'.format(uuid=uuid.uuid4().hex, filename=filename)
 
 
-class AllMessage(models.Model):
+class skybots_allmessage(models.Model):
     MESSAGE_TYPE = (
         ("text", "Текст"),
         ("photo", "Фото"),
@@ -36,7 +36,7 @@ class AllMessage(models.Model):
         return "Сообщение № {}".format(self.pk)
 
 
-class Themes(models.Model):
+class skybots_themes(models.Model):
     themes_names = models.CharField(max_length=256, verbose_name="Имя темы")
 
     class Meta:
@@ -47,8 +47,8 @@ class Themes(models.Model):
         return self.themes_names
 
 
-class Modules(models.Model):
-    themes_id = models.ForeignKey(Themes, on_delete=models.CASCADE, default=True, null=True, verbose_name="ID темы")
+class skybots_modules(models.Model):
+    themes_id = models.ForeignKey(skybots_themes, on_delete=models.CASCADE, default=True, null=True, verbose_name="ID темы")
     module_name = models.CharField(max_length=256, verbose_name="Имя модуля")
     module_description = models.TextField(blank=True, null=True, verbose_name="Описание модуля")
     module_photo = models.ImageField(upload_to=get_upload_path, default=True, verbose_name="Фото модуля")
@@ -63,7 +63,7 @@ class Modules(models.Model):
         return self.module_name
 
 
-class Lessons(models.Model):
+class skybots_lessons(models.Model):
     PARENTS = (
         (0, "Ребенок"),
         (1, "Родитель"),
@@ -75,7 +75,7 @@ class Lessons(models.Model):
         (1, "Полная версия"),
     )
 
-    id_modules = models.ForeignKey(Modules, on_delete=models.CASCADE, verbose_name="ID модуля")
+    id_modules = models.ForeignKey(skybots_modules, on_delete=models.CASCADE, verbose_name="ID модуля")
     lessons_name = models.CharField(max_length=256, verbose_name="Название урока")
     lessons_description = models.TextField(blank=True, null=True, verbose_name="Описание урока")
     is_parent = models.IntegerField(choices=PARENTS, null=True, verbose_name="Тип урока")
@@ -90,9 +90,9 @@ class Lessons(models.Model):
         return self.lessons_name
 
 
-class LessonsMessage(models.Model):
-    id_lessons = models.ForeignKey(Lessons, related_name="lessonsmsgforlessons", on_delete=models.CASCADE, verbose_name="ID урока")
-    id_AllMessages = models.ForeignKey(AllMessage, on_delete=models.CASCADE, verbose_name="ID сообщения")
+class skybots_lessonsmessage(models.Model):
+    id_lessons = models.ForeignKey(skybots_lessons, related_name="lessonsmsgforlessons", on_delete=models.CASCADE, verbose_name="ID урока")
+    id_AllMessages = models.ForeignKey(skybots_allmessage, on_delete=models.CASCADE, verbose_name="ID сообщения")
 
     class Meta:
         verbose_name = "Сообщения урока"
@@ -102,9 +102,9 @@ class LessonsMessage(models.Model):
         return "Сообщение № {} для урока {}".format(self.id_AllMessages.pk, self.id_lessons.lessons_name)
 
 
-class Vocabulary(models.Model):
-    id_lessons = models.ForeignKey(Lessons, on_delete=models.CASCADE, verbose_name="ID урока")
-    message_id = models.ForeignKey(AllMessage, on_delete=models.CASCADE, verbose_name="ID сообщения")
+class skybots_vocabulary(models.Model):
+    id_lessons = models.ForeignKey(skybots_lessons, on_delete=models.CASCADE, verbose_name="ID урока")
+    message_id = models.ForeignKey(skybots_allmessage, on_delete=models.CASCADE, verbose_name="ID сообщения")
 
     class Meta:
         verbose_name = "Словарь"
@@ -114,13 +114,13 @@ class Vocabulary(models.Model):
         return "Сообщение № {} для урока {}".format(self.message_id.pk, self.id_lessons.lessons_name)
 
 
-class Quest(models.Model):
+class skybots_quest(models.Model):
     IS_HARD = (
         (0, "Легко"),
         (1, "Сложно")
     )
-    id_modules = models.ForeignKey(Modules, on_delete=models.CASCADE, verbose_name="ID модуля")
-    id_lessons = models.ForeignKey(Lessons, on_delete=models.CASCADE, verbose_name="ID урока")
+    id_modules = models.ForeignKey(skybots_modules, on_delete=models.CASCADE, verbose_name="ID модуля")
+    id_lessons = models.ForeignKey(skybots_lessons, on_delete=models.CASCADE, verbose_name="ID урока")
     quest_name = models.CharField(max_length=1024, verbose_name="Название квеста", unique=True)
     quest_description = models.TextField(blank=True, null=True, verbose_name="Описание квеста")
     data_create_quest = models.DateTimeField(auto_now=True, verbose_name="Дата создания квеста")
@@ -134,9 +134,9 @@ class Quest(models.Model):
         return self.quest_name
 
 
-class QuestMessage(models.Model):
-    quest_id = models.ForeignKey(Quest, on_delete=models.CASCADE, verbose_name="ID квеста")
-    id_AllMessages = models.ForeignKey(AllMessage, on_delete=models.CASCADE, verbose_name="ID сообщения")
+class skybots_questmessage(models.Model):
+    quest_id = models.ForeignKey(skybots_quest, on_delete=models.CASCADE, verbose_name="ID квеста")
+    id_AllMessages = models.ForeignKey(skybots_allmessage, on_delete=models.CASCADE, verbose_name="ID сообщения")
 
     class Meta:
         verbose_name = "Сообщение квестов"
@@ -146,13 +146,13 @@ class QuestMessage(models.Model):
         return "Сообщение № {} для квеста {}".format(self.id_AllMessages.pk, self.quest_id.quest_name)
 
 
-class QuestChoices(models.Model):
+class skybots_questchoices(models.Model):
     TRUE_CHOICE = (
         ('true', "Верно"),
         ("false", "Неверно"),
     )
 
-    quest_id = models.ForeignKey(Quest, on_delete=models.CASCADE, verbose_name="ID квеста")
+    quest_id = models.ForeignKey(skybots_quest, on_delete=models.CASCADE, verbose_name="ID квеста")
     choice_name = models.CharField(max_length=128, verbose_name="Названия выбора")
     сhoice_description = models.CharField(max_length=1024, blank=True, null=True, verbose_name="Описание выбора ответа")
     is_True = models.CharField(max_length=255, choices=TRUE_CHOICE,  null=True, verbose_name="Правильность выбора")
@@ -165,8 +165,8 @@ class QuestChoices(models.Model):
         return "Выбор {}({}) - для квеста {}".format(self.choice_name, self.is_True, self.quest_id.quest_name)
 
 
-class Achievements(models.Model):
-    lesson_id = models.ForeignKey(Lessons, related_name="achiveforlessons", on_delete=models.CASCADE, verbose_name="ID урока")
+class skybots_achievements(models.Model):
+    lesson_id = models.ForeignKey(skybots_lessons, related_name="achiveforlessons", on_delete=models.CASCADE, verbose_name="ID урока")
     achieve_name = models.CharField(max_length=255, verbose_name="Название ачивки")
     achieve_description = models.TextField(blank=True, null=True, verbose_name="Описание ачивки")
     achieve_photo = models.ImageField(upload_to=get_upload_path, default=True, verbose_name="Фото ачивки")
@@ -179,13 +179,13 @@ class Achievements(models.Model):
         return self.achieve_name
 
 
-class InteractiveButtons(models.Model):
-    module_id = models.ForeignKey(Modules, on_delete=models.CASCADE, null=True, verbose_name="ID модуля")
-    lessons_id = models.ForeignKey(Lessons, on_delete=models.CASCADE, null=True, verbose_name="ID урока")
+class skybots_interactivebuttons(models.Model):
+    module_id = models.ForeignKey(skybots_modules, on_delete=models.CASCADE, null=True, verbose_name="ID модуля")
+    lessons_id = models.ForeignKey(skybots_lessons, on_delete=models.CASCADE, null=True, verbose_name="ID урока")
     button_name = models.CharField(max_length=255, verbose_name="Название кнопки")
-    message_id = models.ForeignKey(LessonsMessage, related_name="forbutton", on_delete=models.CASCADE, blank=True,
+    message_id = models.ForeignKey(skybots_lessonsmessage, related_name="forbutton", on_delete=models.CASCADE, blank=True,
                                    null=True, verbose_name="ID сообщения")
-    achieve_id = models.ForeignKey(Achievements, on_delete=models.CASCADE, blank=True, null=True, verbose_name="ID ачивки")
+    achieve_id = models.ForeignKey(skybots_achievements, on_delete=models.CASCADE, blank=True, null=True, verbose_name="ID ачивки")
 
     class Meta:
         verbose_name = "Кнопки"
@@ -195,7 +195,7 @@ class InteractiveButtons(models.Model):
         return self.button_name
 
 
-class User(AbstractUser):
+class skybots_user(AbstractUser):
     CONFIRM_TYPE = (
         (0, 0),
         (1, 1),

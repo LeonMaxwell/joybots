@@ -88,18 +88,18 @@ DATABASES = {
 
 # MySQL connector
 
-db_confg = {
-     "mysql":{
-         "host": "80.211.108.190",
-         "db_name": "kbk_group",
-         "user": "root",
-        "pass": "Kukrinix"
-   }
-}
+# db_confg = {
+#      "mysql":{
+#          "host": "80.211.108.190",
+#          "db_name": "kbk_group",
+#          "user": "root",
+#         "pass": "Kukrinix"
+#    }
+# }
 
 
 
-AUTH_USER_MODEL = 'skybots.User'
+AUTH_USER_MODEL = 'skybots.skybots_user'
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
